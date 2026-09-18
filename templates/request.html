@@ -1,0 +1,2466 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="request-page">
+
+    <div class="request-header">
+
+        <a href="{{ url_for('dashboard') }}" class="back-button">
+            <svg viewBox="0 0 24 24">
+                <path d="M19 12H5"></path>
+                <path d="M12 19l-7-7 7-7"></path>
+            </svg>
+            Back to Dashboard
+        </a>
+
+        <div class="request-title">
+            <p class="dashboard-label">
+                GABAY ASSISTANCE REQUEST
+            </p>
+
+            <h1>{{ category }}</h1>
+
+            <p>
+                Provide the necessary information so the government
+                can properly review and respond to your request.
+            </p>
+        </div>
+
+    </div>
+
+
+    <div class="request-ai-info" id="ai-assistance">
+        <div class="request-ai-info-icon">AI</div>
+        <div>
+            <strong>AI Assistance</strong>
+            <p>GABAY uses AI to help government personnel organize and prioritize submitted requests. You still control the information you submit.</p>
+        </div>
+    </div>
+
+    <div class="request-container">
+
+        <form
+            action="{{ url_for('submit_request') }}"
+            method="POST"
+            id="requestForm"
+        >
+
+            <!-- =====================================================
+                 STEP 1
+            ====================================================== -->
+
+            <div class="form-section" id="location">
+
+                <div class="form-section-header">
+
+                    <div class="step-number">1</div>
+
+                    <div>
+                        <h2>Assistance Type</h2>
+
+                        <p>
+                            Confirm the type of assistance you need.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="selected-category">
+
+                    <div class="category-symbol">
+
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 3v18"></path>
+                            <path d="M5 12h14"></path>
+                        </svg>
+
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            {{ category }}
+                        </strong>
+
+                        <span>
+                            Selected assistance
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <input
+                    type="hidden"
+                    name="category"
+                    value="{{ category }}"
+                >
+
+            </div>
+
+
+            <!-- =====================================================
+                 STEP 2
+            ====================================================== -->
+
+            <div class="form-section">
+
+                <div class="form-section-header">
+
+                    <div class="step-number">2</div>
+
+                    <div>
+
+                        <h2>Describe the Problem</h2>
+
+                        <p>
+                            Tell us what happened and what assistance
+                            you need.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="description">
+                        Problem Description
+                    </label>
+
+                    <textarea
+                        id="description"
+                        name="description"
+                        rows="6"
+                        placeholder="Describe your situation..."
+                        required
+                    ></textarea>
+
+                    <small>
+                        Please provide clear and accurate information.
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <!-- =====================================================
+                 STEP 3
+            ====================================================== -->
+
+            <div class="form-section">
+
+                <div class="form-section-header">
+
+                    <div class="step-number">3</div>
+
+                    <div>
+
+                        <h2>Contact Information</h2>
+
+                        <p>
+                            Government personnel may use this information
+                            to contact you.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-row">
+
+                    <div class="form-group">
+
+                        <label for="contact_number">
+                            Contact Number
+                        </label>
+
+                        <input
+                            type="tel"
+                            id="contact_number"
+                            name="contact_number"
+                            placeholder="09XXXXXXXXX"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="email">
+                            Email
+                        </label>
+
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="your@email.com"
+                        >
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            {% if "electricity" in category|lower or "energy" in category|lower %}
+            <div class="form-section">
+                <div class="form-section-header"><div class="step-number">4</div><div><h2>Energy Emergency Details</h2><p>Provide the information needed to classify a power outage.</p></div></div>
+                <div class="form-row"><div class="form-group"><label for="population_affected">Estimated Population Affected</label><input type="number" min="0" id="population_affected" name="population_affected"></div><div class="form-group"><label for="households_affected">Estimated Households Affected</label><input type="number" min="0" id="households_affected" name="households_affected"></div></div>
+                <div class="form-row"><div class="form-group"><label for="urgency">Urgency</label><select id="urgency" name="urgency"><option>Low</option><option selected>Moderate</option><option>High</option><option>Critical</option></select></div><div class="form-group"><label for="outage_type">Power Outage Type</label><select id="outage_type" name="outage_type"><option>Total Power Outage</option><option>Partial Power Outage</option><option>Intermittent Power Outage</option><option>Low Voltage / Power Fluctuation</option><option>Planned / Scheduled Outage</option><option>Unplanned / Unexpected Outage</option><option>Unknown / Not Sure</option></select></div></div>
+                <div class="form-group"><label for="outage_started_at">Date/Time Outage Started</label><input type="datetime-local" id="outage_started_at" name="outage_started_at"></div>
+            </div>
+            {% endif %}
+
+            <!-- =====================================================
+                 STEP 4
+            ====================================================== -->
+
+            <div class="form-section">
+
+                <div class="form-section-header">
+
+                    <div class="step-number">4</div>
+
+                    <div>
+
+                        <h2>Location</h2>
+
+                        <p>
+                            Use your device GPS to determine your
+                            current location.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="address">
+                        Detected Address
+                    </label>
+
+                    <textarea
+                        id="address"
+                        name="address"
+                        rows="3"
+                        placeholder="Click 'Use My Current Location' to detect your location."
+                        required
+                    ></textarea>
+
+                    <small>
+                        Please verify the detected address before submitting.
+                    </small>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="location-button"
+                    id="locationButton"
+                >
+
+                    <svg viewBox="0 0 24 24">
+
+                        <path
+                            d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"
+                        ></path>
+
+                        <circle
+                            cx="12"
+                            cy="9"
+                            r="2.5"
+                        ></circle>
+
+                    </svg>
+
+                    Use My Current Location
+
+                </button>
+
+
+                <p
+                    class="location-status"
+                    id="locationStatus"
+                >
+                    Location has not been detected yet.
+                </p>
+
+
+                <div
+                    class="coordinates-box"
+                    id="coordinatesBox"
+                    style="display:none;"
+                >
+
+                    <span>
+                        GPS Coordinates
+                    </span>
+
+                    <strong id="coordinatesText">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <input
+                    type="hidden"
+                    name="latitude"
+                    id="latitude"
+                >
+
+                <input
+                    type="hidden"
+                    name="longitude"
+                    id="longitude"
+                >
+
+            </div>
+
+
+            <!-- =====================================================
+                 STEP 5
+            ====================================================== -->
+
+            <div class="form-section">
+
+                <div class="form-section-header">
+
+                    <div class="step-number">5</div>
+
+                    <div>
+
+                        <h2>Verify Your Identity</h2>
+
+                        <p>
+                            Complete face verification before
+                            submitting your request.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="verification-box">
+
+                    <div class="verification-content">
+
+
+                        <!-- HEADER -->
+
+                        <div class="verification-top">
+
+                            <div class="verification-icon">
+
+                                <svg viewBox="0 0 24 24">
+
+                                    <rect
+                                        x="3"
+                                        y="5"
+                                        width="18"
+                                        height="14"
+                                        rx="2"
+                                    ></rect>
+
+                                    <circle
+                                        cx="12"
+                                        cy="11"
+                                        r="3"
+                                    ></circle>
+
+                                    <path
+                                        d="M8 17c1-2 2.5-3 4-3s3 1 4 3"
+                                    ></path>
+
+                                </svg>
+
+                            </div>
+
+
+                            <div>
+
+                                <h3>
+                                    Face & Liveness Verification
+                                </h3>
+
+                                <p>
+                                    Your camera remains off until
+                                    you start verification.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- REQUIREMENTS -->
+
+                        <div class="verification-requirements">
+
+                            <div class="requirement-title">
+                                Verification Steps
+                            </div>
+
+
+                            {% if "medical" in category|lower %}
+
+                            <div class="requirement-item">
+
+                                <span>1</span>
+
+                                <div>
+
+                                    <strong>
+                                        Center your face
+                                    </strong>
+
+                                    <small>
+                                        Look directly at the camera
+                                        and hold still.
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="requirement-item">
+
+                                <span>2</span>
+
+                                <div>
+
+                                    <strong>
+                                        Blink
+                                    </strong>
+
+                                    <small>
+                                        Close and open your eyes naturally.
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+
+                            {% else %}
+
+                            <div class="requirement-item">
+
+                                <span>1</span>
+
+                                <div>
+
+                                    <strong>
+                                        Center your face
+                                    </strong>
+
+                                    <small>
+                                        Look directly at the camera.
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="requirement-item">
+
+                                <span>2</span>
+
+                                <div>
+
+                                    <strong>
+                                        Turn LEFT
+                                    </strong>
+
+                                    <small>
+                                        Slowly turn your head left.
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="requirement-item">
+
+                                <span>3</span>
+
+                                <div>
+
+                                    <strong>
+                                        Turn RIGHT
+                                    </strong>
+
+                                    <small>
+                                        Slowly turn your head right.
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="requirement-item">
+
+                                <span>4</span>
+
+                                <div>
+
+                                    <strong>
+                                        Blink
+                                    </strong>
+
+                                    <small>
+                                        Close and open your eyes naturally.
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- CAMERA -->
+
+                        <div
+                            class="camera-container"
+                            id="cameraContainer"
+                            style="display:none;"
+                        >
+
+                            <video
+                                id="verificationVideo"
+                                autoplay
+                                muted
+                                playsinline
+                            ></video>
+
+                            <div class="camera-guide">
+                                <div class="face-guide"></div>
+                            </div>
+
+                        </div>
+
+
+                        <!-- LIVE STEPS -->
+
+                        <div
+                            class="liveness-instructions"
+                            id="livenessInstructions"
+                            style="display:none;"
+                        >
+
+                            <div
+                                class="liveness-step active"
+                                id="stepCenter"
+                            >
+
+                                <span>1</span>
+
+                                <div>
+
+                                    <strong>
+                                        Look at the camera
+                                    </strong>
+
+                                    <small>
+                                        Keep your face centered.
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                class="liveness-step"
+                                id="stepLeft"
+                            >
+
+                                <span>2</span>
+
+                                <div>
+
+                                    <strong>
+                                        Turn LEFT
+                                    </strong>
+
+                                    <small>
+                                        Slowly turn your head left.
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                class="liveness-step"
+                                id="stepRight"
+                            >
+
+                                <span>3</span>
+
+                                <div>
+
+                                    <strong>
+                                        Turn RIGHT
+                                    </strong>
+
+                                    <small>
+                                        Slowly turn your head right.
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                class="liveness-step"
+                                id="stepBlink"
+                            >
+
+                                <span>4</span>
+
+                                <div>
+
+                                    <strong>
+                                        Blink
+                                    </strong>
+
+                                    <small>
+                                        Close your eyes and open them.
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- DEBUG -->
+
+                        <div
+                            id="blinkDebug"
+                            style="
+                                display:none;
+                                margin-top:15px;
+                                padding:12px;
+                                background:#f1f5f9;
+                                border:1px solid #e2e8f0;
+                                border-radius:10px;
+                                font-family:monospace;
+                                font-size:13px;
+                                line-height:1.7;
+                            "
+                        >
+                            Waiting for face...
+                        </div>
+
+
+                        <!-- STATUS -->
+
+                        <p
+                            class="verification-status"
+                            id="verificationStatus"
+                        >
+                            Ready. Press
+                            <strong>
+                                Start Face Verification
+                            </strong>
+                            when you are ready.
+                        </p>
+
+
+                        <!-- START BUTTON -->
+
+                        <button
+                            type="button"
+                            class="verification-button"
+                            id="verificationButton"
+                        >
+                            Start Face Verification
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <input
+                    type="hidden"
+                    name="verification_image"
+                    id="verificationImage"
+                >
+
+            </div>
+
+
+            <!-- =====================================================
+                 SUBMIT
+            ====================================================== -->
+
+            <div class="request-submit-section">
+
+                <div class="request-warning">
+
+                    <svg viewBox="0 0 24 24">
+
+                        <path
+                            d="M12 3L2 21h20L12 3z"
+                        ></path>
+
+                        <path
+                            d="M12 9v5"
+                        ></path>
+
+                        <circle
+                            cx="12"
+                            cy="17"
+                            r=".7"
+                        ></circle>
+
+                    </svg>
+
+
+                    <p>
+                        Please make sure all information is accurate.
+                        Your request will be reviewed by authorized
+                        government personnel.
+                    </p>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="submit-request-button"
+                    id="submitRequestButton"
+                    disabled
+                >
+
+                    Submit Request
+
+                    <svg viewBox="0 0 24 24">
+
+                        <path d="M5 12h14"></path>
+
+                        <path d="M13 6l6 6-6 6"></path>
+
+                    </svg>
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =============================================================
+     MEDIAPIPE FACE LANDMARKER
+============================================================= -->
+
+<script type="module">
+
+/*
+    IMPORTANT:
+
+    There is NO default import here.
+
+    Correct:
+        import { FaceLandmarker, FilesetResolver } ...
+
+    NOT:
+        import vision ...
+*/
+
+import {
+    FaceLandmarker,
+    FilesetResolver
+} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs";
+
+
+console.log(
+    "GABAY: MediaPipe module loaded."
+);
+
+
+/* =============================================================
+   CATEGORY
+============================================================= */
+
+const category =
+    "{{ category|lower }}";
+
+const isMedical =
+    category.includes("medical");
+
+
+/* =============================================================
+   ELEMENTS
+============================================================= */
+
+const verificationButton =
+    document.getElementById(
+        "verificationButton"
+    );
+
+const verificationStatus =
+    document.getElementById(
+        "verificationStatus"
+    );
+
+const verificationVideo =
+    document.getElementById(
+        "verificationVideo"
+    );
+
+const cameraContainer =
+    document.getElementById(
+        "cameraContainer"
+    );
+
+const livenessInstructions =
+    document.getElementById(
+        "livenessInstructions"
+    );
+
+const verificationImage =
+    document.getElementById(
+        "verificationImage"
+    );
+
+const submitRequestButton =
+    document.getElementById(
+        "submitRequestButton"
+    );
+
+const blinkDebug =
+    document.getElementById(
+        "blinkDebug"
+    );
+
+
+/* =============================================================
+   LOCATION
+============================================================= */
+
+const locationButton =
+    document.getElementById(
+        "locationButton"
+    );
+
+const locationStatus =
+    document.getElementById(
+        "locationStatus"
+    );
+
+const addressInput =
+    document.getElementById(
+        "address"
+    );
+
+const latitudeInput =
+    document.getElementById(
+        "latitude"
+    );
+
+const longitudeInput =
+    document.getElementById(
+        "longitude"
+    );
+
+const coordinatesBox =
+    document.getElementById(
+        "coordinatesBox"
+    );
+
+const coordinatesText =
+    document.getElementById(
+        "coordinatesText"
+    );
+
+function setLocationState(state, message) {
+    locationStatus.classList.remove("is-loading", "is-success", "is-error");
+    if (state) locationStatus.classList.add("is-" + state);
+    locationStatus.textContent = message;
+}
+
+
+/* =============================================================
+   STATE
+============================================================= */
+
+let cameraStream = null;
+
+let faceLandmarker = null;
+
+let verificationRunning = false;
+
+let faceVerified = false;
+
+let stage = 0;
+
+let centerStartTime = null;
+
+let blinkState = "OPEN";
+
+let blinkClosedTime = 0;
+
+let lastVideoTime = -1;
+
+
+/* =============================================================
+   LOCATION
+============================================================= */
+
+locationButton.addEventListener(
+    "click",
+    () => {
+
+        if (!navigator.geolocation) {
+
+            locationStatus.textContent =
+                "GPS is not supported by this browser.";
+
+            return;
+        }
+
+
+        locationButton.disabled = true;
+        locationButton.classList.add("is-loading");
+        locationButton.innerHTML = '<span class="location-spinner" aria-hidden="true"></span> Detecting location...';
+        setLocationState("loading", "Finding your most accurate GPS position… Please allow location access if your browser asks.");
+
+
+        navigator.geolocation.getCurrentPosition(
+
+            async (position) => {
+
+                const latitude =
+                    position.coords.latitude;
+
+                const longitude =
+                    position.coords.longitude;
+
+                const accuracy =
+                    position.coords.accuracy;
+
+
+                latitudeInput.value =
+                    latitude;
+
+                longitudeInput.value =
+                    longitude;
+
+
+                coordinatesBox.style.display =
+                    "block";
+
+
+                coordinatesText.textContent =
+                    latitude.toFixed(7) +
+                    ", " +
+                    longitude.toFixed(7) +
+                    " • ±" +
+                    Math.round(accuracy) +
+                    " meters";
+
+
+                addressInput.value =
+                    "GPS Coordinates: " +
+                    latitude.toFixed(7) +
+                    ", " +
+                    longitude.toFixed(7);
+
+
+                try {
+
+                    const response =
+                        await fetch(
+                            "https://nominatim.openstreetmap.org/reverse" +
+                            "?format=jsonv2" +
+                            "&lat=" +
+                            encodeURIComponent(latitude) +
+                            "&lon=" +
+                            encodeURIComponent(longitude) +
+                            "&zoom=18" +
+                            "&addressdetails=1"
+                        );
+
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            "Reverse geocoding failed."
+                        );
+                    }
+
+
+                    const data =
+                        await response.json();
+
+
+                    if (data.display_name) {
+
+                        addressInput.value =
+                            data.display_name;
+
+                        setLocationState("success", "Location detected successfully. Please verify the address shown below.");
+
+                    } else {
+
+                        setLocationState("success", "GPS detected successfully. Please verify the location.");
+                    }
+
+                } catch (error) {
+
+                    console.error(
+                        "Reverse geocoding error:",
+                        error
+                    );
+
+                    setLocationState("success", "GPS detected. Please verify the address manually.");
+                }
+
+
+                locationButton.disabled = false;
+                locationButton.classList.remove("is-loading");
+                locationButton.classList.add("is-success");
+                locationButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"></path><circle cx="12" cy="9" r="2.5"></circle></svg> Update My Location';
+            },
+
+
+            (error) => {
+
+                console.error(
+                    "GPS error:",
+                    error
+                );
+
+
+                locationButton.disabled = false;
+                locationButton.classList.remove("is-loading", "is-success");
+                locationButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"></path><circle cx="12" cy="9" r="2.5"></circle></svg> Use My Current Location';
+                setLocationState("error", "Unable to get your GPS location. Please allow location access and try again.");
+            },
+
+
+            {
+                enableHighAccuracy: true,
+                timeout: 20000,
+                maximumAge: 0
+            }
+        );
+    }
+);
+
+
+/* =============================================================
+   LOAD MEDIAPIPE
+============================================================= */
+
+async function loadFaceLandmarker() {
+
+    if (faceLandmarker) {
+
+        console.log(
+            "GABAY: Face Landmarker already loaded."
+        );
+
+        return;
+    }
+
+
+    verificationStatus.textContent =
+        "Loading face verification system...";
+
+
+    console.log(
+        "GABAY: Loading MediaPipe WASM..."
+    );
+
+
+    const vision =
+        await FilesetResolver.forVisionTasks(
+
+            "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
+        );
+
+
+    console.log(
+        "GABAY: MediaPipe WASM loaded."
+    );
+
+
+    verificationStatus.textContent =
+        "Loading face model...";
+
+
+    faceLandmarker =
+        await FaceLandmarker.createFromOptions(
+
+            vision,
+
+            {
+
+                baseOptions: {
+
+                    modelAssetPath:
+                        "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+
+                    delegate:
+                        "GPU"
+                },
+
+
+                runningMode:
+                    "VIDEO",
+
+
+                numFaces:
+                    1,
+
+
+                minFaceDetectionConfidence:
+                    0.5,
+
+
+                minFacePresenceConfidence:
+                    0.5,
+
+
+                minTrackingConfidence:
+                    0.5,
+
+
+                outputFaceBlendshapes:
+                    true,
+
+
+                outputFacialTransformationMatrixes:
+                    true
+            }
+        );
+
+
+    console.log(
+        "GABAY: Face Landmarker ready."
+    );
+}
+
+
+/* =============================================================
+   START CAMERA
+============================================================= */
+
+async function startCamera() {
+
+    console.log(
+        "GABAY: Requesting camera..."
+    );
+
+
+    if (
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia
+    ) {
+
+        throw new Error(
+            "Camera API is not supported by this browser."
+        );
+    }
+
+
+    cameraStream =
+        await navigator.mediaDevices.getUserMedia({
+
+            video: {
+
+                facingMode:
+                    "user",
+
+                width: {
+                    ideal: 640
+                },
+
+                height: {
+                    ideal: 480
+                }
+            },
+
+            audio:
+                false
+        });
+
+
+    console.log(
+        "GABAY: Camera permission granted."
+    );
+
+
+    verificationVideo.srcObject =
+        cameraStream;
+
+
+    await verificationVideo.play();
+
+
+    cameraContainer.style.display =
+        "block";
+
+
+    livenessInstructions.style.display =
+        "flex";
+
+
+    console.log(
+        "GABAY: Camera started."
+    );
+}
+
+
+/* =============================================================
+   STOP CAMERA
+============================================================= */
+
+function stopCamera() {
+
+    if (cameraStream) {
+
+        cameraStream
+            .getTracks()
+            .forEach(
+                track => track.stop()
+            );
+
+        cameraStream =
+            null;
+    }
+
+
+    verificationVideo.srcObject =
+        null;
+}
+
+
+/* =============================================================
+   BLENDSHAPE VALUE
+============================================================= */
+
+function getBlendshapeValue(
+    categories,
+    name
+) {
+
+    if (!categories) {
+
+        return 0;
+    }
+
+
+    for (
+        const item of categories
+    ) {
+
+        if (
+            item.categoryName ===
+            name
+        ) {
+
+            return item.score;
+        }
+    }
+
+
+    return 0;
+}
+
+
+/* =============================================================
+   BLINK DETECTION
+============================================================= */
+
+function detectBlink(result) {
+
+    if (
+        !result ||
+        !result.faceBlendshapes ||
+        !result.faceBlendshapes.length
+    ) {
+
+        return false;
+    }
+
+
+    const categories =
+        result
+            .faceBlendshapes[0]
+            .categories;
+
+
+    const leftBlink =
+        getBlendshapeValue(
+            categories,
+            "eyeBlinkLeft"
+        );
+
+
+    const rightBlink =
+        getBlendshapeValue(
+            categories,
+            "eyeBlinkRight"
+        );
+
+
+    const averageBlink =
+        (
+            leftBlink +
+            rightBlink
+        ) / 2;
+
+
+    /*
+        MediaPipe blendshape:
+
+        OPEN:
+        approximately 0
+
+        CLOSED:
+        approximately 1
+    */
+
+    const CLOSED_THRESHOLD =
+        0.35;
+
+    const OPEN_THRESHOLD =
+        0.20;
+
+
+    const now =
+        performance.now();
+
+
+    /*
+        OPEN -> CLOSED
+    */
+
+    if (
+        blinkState === "OPEN" &&
+        averageBlink >=
+        CLOSED_THRESHOLD
+    ) {
+
+        blinkState =
+            "CLOSED";
+
+
+        blinkClosedTime =
+            now;
+    }
+
+
+    /*
+        CLOSED -> OPEN
+    */
+
+    else if (
+        blinkState === "CLOSED" &&
+        averageBlink <=
+        OPEN_THRESHOLD
+    ) {
+
+        const closedDuration =
+            now -
+            blinkClosedTime;
+
+
+        /*
+            Normal blink duration.
+        */
+
+        if (
+            closedDuration >= 40 &&
+            closedDuration <= 1000
+        ) {
+
+            blinkState =
+                "OPEN";
+
+
+            blinkDebug.innerHTML =
+
+                "Left Blink: " +
+                leftBlink.toFixed(3) +
+
+                "<br>" +
+
+                "Right Blink: " +
+                rightBlink.toFixed(3) +
+
+                "<br>" +
+
+                "Average Blink: " +
+                averageBlink.toFixed(3) +
+
+                "<br>" +
+
+                "State: <strong>OPEN</strong>" +
+
+                "<br>" +
+
+                "<strong>✓ BLINK DETECTED</strong>";
+
+
+            return true;
+        }
+
+
+        blinkState =
+            "OPEN";
+    }
+
+
+    const stateText =
+        blinkState === "CLOSED"
+            ? "CLOSED"
+            : "OPEN";
+
+
+    blinkDebug.innerHTML =
+
+        "Left Blink: " +
+        leftBlink.toFixed(3) +
+
+        "<br>" +
+
+        "Right Blink: " +
+        rightBlink.toFixed(3) +
+
+        "<br>" +
+
+        "Average Blink: " +
+        averageBlink.toFixed(3) +
+
+        "<br>" +
+
+        "State: <strong>" +
+        stateText +
+        "</strong>";
+
+
+    return false;
+}
+
+
+/* =============================================================
+   HEAD DIRECTION
+============================================================= */
+
+function getHeadDirection(
+    landmarks
+) {
+
+    if (!landmarks) {
+
+        return "center";
+    }
+
+
+    const nose =
+        landmarks[1];
+
+    const leftEye =
+        landmarks[33];
+
+    const rightEye =
+        landmarks[263];
+
+
+    if (
+        !nose ||
+        !leftEye ||
+        !rightEye
+    ) {
+
+        return "center";
+    }
+
+
+    const eyeCenterX =
+        (
+            leftEye.x +
+            rightEye.x
+        ) / 2;
+
+
+    const eyeWidth =
+        Math.abs(
+            rightEye.x -
+            leftEye.x
+        );
+
+
+    if (
+        eyeWidth <= 0
+    ) {
+
+        return "center";
+    }
+
+
+    const offset =
+        (
+            nose.x -
+            eyeCenterX
+        ) /
+        eyeWidth;
+
+
+    /*
+        Mirrored camera.
+    */
+
+    if (
+        offset > 0.22
+    ) {
+
+        return "left";
+    }
+
+
+    if (
+        offset < -0.22
+    ) {
+
+        return "right";
+    }
+
+
+    return "center";
+}
+
+
+/* =============================================================
+   CENTER CHECK
+============================================================= */
+
+function isFaceCentered(
+    landmarks
+) {
+
+    if (
+        !landmarks ||
+        landmarks.length === 0
+    ) {
+
+        return false;
+    }
+
+
+    const nose =
+        landmarks[1];
+
+
+    if (!nose) {
+
+        return false;
+    }
+
+
+    const distanceFromCenter =
+        Math.abs(
+            nose.x - 0.5
+        );
+
+
+    return (
+        distanceFromCenter <
+        0.18
+    );
+}
+
+
+/* =============================================================
+   CAPTURE IMAGE
+============================================================= */
+
+function captureImage() {
+
+    if (
+        !verificationVideo.videoWidth ||
+        !verificationVideo.videoHeight
+    ) {
+
+        return "";
+    }
+
+
+    const canvas =
+        document.createElement(
+            "canvas"
+        );
+
+
+    canvas.width =
+        verificationVideo.videoWidth;
+
+
+    canvas.height =
+        verificationVideo.videoHeight;
+
+
+    const context =
+        canvas.getContext(
+            "2d"
+        );
+
+
+    context.translate(
+        canvas.width,
+        0
+    );
+
+
+    context.scale(
+        -1,
+        1
+    );
+
+
+    context.drawImage(
+        verificationVideo,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+
+    return canvas.toDataURL(
+        "image/jpeg",
+        0.85
+    );
+}
+
+
+/* =============================================================
+   UPDATE STEPS
+============================================================= */
+
+function updateSteps() {
+
+    const center =
+        document.getElementById(
+            "stepCenter"
+        );
+
+    const left =
+        document.getElementById(
+            "stepLeft"
+        );
+
+    const right =
+        document.getElementById(
+            "stepRight"
+        );
+
+    const blink =
+        document.getElementById(
+            "stepBlink"
+        );
+
+
+    center.classList.remove(
+        "active"
+    );
+
+    left.classList.remove(
+        "active"
+    );
+
+    right.classList.remove(
+        "active"
+    );
+
+    blink.classList.remove(
+        "active"
+    );
+
+
+    if (isMedical) {
+
+        left.style.display =
+            "none";
+
+        right.style.display =
+            "none";
+
+
+        if (
+            stage === 0
+        ) {
+
+            center.classList.add(
+                "active"
+            );
+
+        } else {
+
+            blink.classList.add(
+                "active"
+            );
+        }
+
+
+        return;
+    }
+
+
+    left.style.display =
+        "flex";
+
+    right.style.display =
+        "flex";
+
+
+    if (
+        stage === 0
+    ) {
+
+        center.classList.add(
+            "active"
+        );
+
+    } else if (
+        stage === 1
+    ) {
+
+        left.classList.add(
+            "active"
+        );
+
+    } else if (
+        stage === 2
+    ) {
+
+        right.classList.add(
+            "active"
+        );
+
+    } else if (
+        stage === 3
+    ) {
+
+        blink.classList.add(
+            "active"
+        );
+    }
+}
+
+
+/* =============================================================
+   COMPLETE VERIFICATION
+============================================================= */
+
+function completeVerification() {
+
+    faceVerified =
+        true;
+
+
+    verificationRunning =
+        false;
+
+
+    verificationImage.value =
+        captureImage();
+
+
+    stopCamera();
+
+
+    cameraContainer.style.display =
+        "none";
+
+
+    livenessInstructions.style.display =
+        "none";
+
+
+    verificationStatus.innerHTML =
+        "✓ Identity verified successfully.";
+
+
+    verificationStatus.classList.add(
+        "verification-success"
+    );
+
+
+    verificationButton.textContent =
+        "✓ Verification Complete";
+
+
+    verificationButton.disabled =
+        true;
+
+
+    submitRequestButton.disabled =
+        false;
+
+
+    blinkDebug.innerHTML +=
+        "<br><strong>✓ VERIFICATION COMPLETE</strong>";
+}
+
+
+/* =============================================================
+   VERIFICATION LOOP
+============================================================= */
+
+async function runVerification() {
+
+    if (
+        !verificationRunning
+    ) {
+
+        return;
+    }
+
+
+    try {
+
+        if (
+            verificationVideo.readyState <
+            2
+        ) {
+
+            requestAnimationFrame(
+                runVerification
+            );
+
+            return;
+        }
+
+
+        const currentTime =
+            performance.now();
+
+
+        if (
+            verificationVideo.currentTime ===
+            lastVideoTime
+        ) {
+
+            requestAnimationFrame(
+                runVerification
+            );
+
+            return;
+        }
+
+
+        lastVideoTime =
+            verificationVideo.currentTime;
+
+
+        const result =
+            faceLandmarker.detectForVideo(
+                verificationVideo,
+                currentTime
+            );
+
+
+        /*
+            FACE NOT FOUND
+        */
+
+        if (
+            !result.faceLandmarks ||
+            !result.faceLandmarks.length
+        ) {
+
+            centerStartTime =
+                null;
+
+
+            verificationStatus.textContent =
+                "No face detected. Move your face into the guide.";
+
+
+            requestAnimationFrame(
+                runVerification
+            );
+
+            return;
+        }
+
+
+        const landmarks =
+            result.faceLandmarks[0];
+
+
+        /*
+            CENTER
+        */
+
+        if (
+            stage === 0
+        ) {
+
+            const centered =
+                isFaceCentered(
+                    landmarks
+                );
+
+
+            if (!centered) {
+
+                centerStartTime =
+                    null;
+
+
+                verificationStatus.textContent =
+                    "Look directly at the camera and center your face.";
+
+            } else {
+
+                if (
+                    centerStartTime === null
+                ) {
+
+                    centerStartTime =
+                        performance.now();
+                }
+
+
+                const elapsed =
+                    performance.now() -
+                    centerStartTime;
+
+
+                const remaining =
+                    Math.max(
+                        0,
+                        1500 - elapsed
+                    );
+
+
+                verificationStatus.textContent =
+                    "Face centered. Hold still for " +
+                    (
+                        remaining / 1000
+                    ).toFixed(1) +
+                    " seconds.";
+
+
+                if (
+                    elapsed >=
+                    1500
+                ) {
+
+                    centerStartTime =
+                        null;
+
+
+                    blinkState =
+                        "OPEN";
+
+
+                    blinkClosedTime =
+                        0;
+
+
+                    if (
+                        isMedical
+                    ) {
+
+                        stage =
+                            1;
+
+
+                        verificationStatus.textContent =
+                            "Now blink naturally.";
+
+                    } else {
+
+                        stage =
+                            1;
+
+
+                        verificationStatus.textContent =
+                            "Now slowly turn your head LEFT.";
+                    }
+
+
+                    updateSteps();
+                }
+            }
+        }
+
+
+        /*
+            MEDICAL BLINK
+        */
+
+        else if (
+            isMedical &&
+            stage === 1
+        ) {
+
+            const blink =
+                detectBlink(
+                    result
+                );
+
+
+            if (blink) {
+
+                verificationStatus.textContent =
+                    "Blink detected. Verification complete.";
+
+
+                completeVerification();
+
+                return;
+            }
+
+
+            verificationStatus.textContent =
+                "Blink naturally — close and open your eyes.";
+        }
+
+
+        /*
+            LEFT
+        */
+
+        else if (
+            !isMedical &&
+            stage === 1
+        ) {
+
+            const direction =
+                getHeadDirection(
+                    landmarks
+                );
+
+
+            if (
+                direction === "left"
+            ) {
+
+                stage =
+                    2;
+
+
+                updateSteps();
+
+
+                verificationStatus.textContent =
+                    "LEFT detected. Now turn your head RIGHT.";
+
+            } else {
+
+                verificationStatus.textContent =
+                    "Slowly turn your head LEFT.";
+            }
+        }
+
+
+        /*
+            RIGHT
+        */
+
+        else if (
+            !isMedical &&
+            stage === 2
+        ) {
+
+            const direction =
+                getHeadDirection(
+                    landmarks
+                );
+
+
+            if (
+                direction === "right"
+            ) {
+
+                stage =
+                    3;
+
+
+                blinkState =
+                    "OPEN";
+
+
+                blinkClosedTime =
+                    0;
+
+
+                updateSteps();
+
+
+                verificationStatus.textContent =
+                    "RIGHT detected. Look forward and blink naturally.";
+
+            } else {
+
+                verificationStatus.textContent =
+                    "Slowly turn your head RIGHT.";
+            }
+        }
+
+
+        /*
+            NORMAL BLINK
+        */
+
+        else if (
+            !isMedical &&
+            stage === 3
+        ) {
+
+            const blink =
+                detectBlink(
+                    result
+                );
+
+
+            if (blink) {
+
+                verificationStatus.textContent =
+                    "Blink detected. Verification complete.";
+
+
+                completeVerification();
+
+                return;
+            }
+
+
+            verificationStatus.textContent =
+                "Blink naturally — close and open your eyes.";
+        }
+
+
+        if (
+            verificationRunning
+        ) {
+
+            requestAnimationFrame(
+                runVerification
+            );
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "GABAY VERIFICATION LOOP ERROR:",
+            error
+        );
+
+
+        verificationRunning =
+            false;
+
+
+        stopCamera();
+
+
+        verificationButton.disabled =
+            false;
+
+
+        verificationButton.textContent =
+            "Start Face Verification";
+
+
+        verificationStatus.innerHTML =
+            "Verification error:<br><strong>" +
+            error.message +
+            "</strong>";
+    }
+}
+
+
+/* =============================================================
+   START VERIFICATION BUTTON
+============================================================= */
+
+verificationButton.addEventListener(
+    "click",
+    async () => {
+
+        console.log(
+            "GABAY: START FACE VERIFICATION CLICKED"
+        );
+
+
+        if (
+            verificationRunning ||
+            faceVerified
+        ) {
+
+            return;
+        }
+
+
+        verificationButton.disabled =
+            true;
+
+
+        verificationButton.textContent =
+            "Loading Verification...";
+
+
+        verificationStatus.textContent =
+            "Starting face verification...";
+
+
+        try {
+
+            /*
+                1. LOAD MEDIAPIPE
+            */
+
+            await loadFaceLandmarker();
+
+
+            /*
+                2. START CAMERA
+            */
+
+            verificationStatus.textContent =
+                "Opening camera...";
+
+
+            await startCamera();
+
+
+            /*
+                3. INITIALIZE VERIFICATION
+            */
+
+            verificationRunning =
+                true;
+
+
+            faceVerified =
+                false;
+
+
+            stage =
+                0;
+
+
+            centerStartTime =
+                null;
+
+
+            blinkState =
+                "OPEN";
+
+
+            blinkClosedTime =
+                0;
+
+
+            lastVideoTime =
+                -1;
+
+
+            updateSteps();
+
+
+            blinkDebug.style.display =
+                "block";
+
+
+            verificationButton.textContent =
+                "Verification In Progress";
+
+
+            verificationStatus.textContent =
+                "Look directly at the camera and center your face.";
+
+
+            /*
+                4. START DETECTION LOOP
+            */
+
+            requestAnimationFrame(
+                runVerification
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "GABAY START VERIFICATION ERROR:",
+                error
+            );
+
+
+            verificationRunning =
+                false;
+
+
+            stopCamera();
+
+
+            verificationButton.disabled =
+                false;
+
+
+            verificationButton.textContent =
+                "Start Face Verification";
+
+
+            verificationStatus.innerHTML =
+                "Unable to start verification.<br><br>" +
+                "<strong>" +
+                error.message +
+                "</strong>";
+        }
+    }
+);
+
+
+/* =============================================================
+   FORM SUBMISSION
+============================================================= */
+
+document
+    .getElementById(
+        "requestForm"
+    )
+    .addEventListener(
+        "submit",
+        (event) => {
+
+            if (
+                !faceVerified
+            ) {
+
+                event.preventDefault();
+
+                alert(
+                    "Please complete face verification first."
+                );
+
+                return;
+            }
+
+
+            if (
+                !latitudeInput.value ||
+                !longitudeInput.value
+            ) {
+
+                event.preventDefault();
+
+                alert(
+                    "Please detect your location first."
+                );
+
+                return;
+            }
+
+
+            if (
+                !addressInput.value.trim()
+            ) {
+
+                event.preventDefault();
+
+                alert(
+                    "Please verify your address first."
+                );
+
+                return;
+            }
+
+
+            submitRequestButton.disabled =
+                true;
+
+
+            submitRequestButton.textContent =
+                "Submitting Request...";
+        }
+    );
+
+
+/* =============================================================
+   INITIAL STATE
+============================================================= */
+
+cameraContainer.style.display =
+    "none";
+
+
+livenessInstructions.style.display =
+    "none";
+
+
+blinkDebug.style.display =
+    "none";
+
+
+verificationButton.disabled =
+    false;
+
+
+verificationButton.textContent =
+    "Start Face Verification";
+
+
+verificationStatus.innerHTML =
+    "Ready. Press <strong>Start Face Verification</strong> when you are ready.";
+
+
+console.log(
+    "GABAY: request.html initialized successfully."
+);
+
+</script>
+
+{% endblock %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    if (window.location.hash === "#location") {
+        const button = document.getElementById("locationButton");
+        if (button) {
+            setTimeout(() => button.click(), 250);
+        }
+    }
+});
+</script>

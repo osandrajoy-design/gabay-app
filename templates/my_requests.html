@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="portal-page"><div class="portal-card"><p class="dashboard-label">CITIZEN PORTAL</p><h1>My Requests</h1><p>Track requests submitted from your GABAY account.</p><div class="request-list">{% for item in requests %}<article class="request-list-item"><div><strong>{{ item.ticket_number }}</strong><h2>{{ item.category }}</h2><p>{{ item.description }}</p><small>{{ item.created_at }} · {{ item.address }}</small></div><div class="request-list-status">
+<span>{{ item.status }}</span>
+<strong>{{ item.priority }}</strong>
+<a href="{{ url_for('request_info', request_id=item.id) }}">View</a>
+{% if item.status not in ['Resolved', 'Cancelled', 'Closed'] %}
+<form method="POST" action="{{ url_for('cancel_request', request_id=item.id) }}" onsubmit="return confirm('Cancel this request? This action cannot be undone.');">
+<button type="submit" class="cancel-request-button">Cancel Request</button>
+</form>
+{% endif %}
+</div></article>{% else %}<div class="portal-empty">No requests yet. Start by submitting an assistance request.</div>{% endfor %}</div></div></main>
+{% endblock %}

@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Processing Request | GABAY</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+
+            font-family: "Poppins", Arial, sans-serif;
+
+            background: #f8fafc;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .processing-container {
+            width: 90%;
+            max-width: 650px;
+
+            background: #ffffff;
+
+            padding: 50px 40px;
+
+            border-radius: 20px;
+
+            text-align: center;
+
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        .loader {
+            width: 70px;
+            height: 70px;
+
+            border: 7px solid #e5e7eb;
+            border-top: 7px solid #0b3d91;
+
+            border-radius: 50%;
+
+            margin: 0 auto 30px;
+
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        h1 {
+            margin: 0 0 15px;
+
+            color: #111827;
+
+            font-size: 30px;
+        }
+
+        .main-text {
+            color: #4b5563;
+
+            font-size: 16px;
+
+            line-height: 1.7;
+
+            margin-bottom: 25px;
+        }
+
+        .ticket-box {
+            background: #f8fafc;
+
+            border: 1px solid #e5e7eb;
+
+            border-radius: 12px;
+
+            padding: 15px;
+
+            margin: 25px 0;
+        }
+
+        .ticket-label {
+            font-size: 13px;
+
+            color: #6b7280;
+
+            margin-bottom: 5px;
+        }
+
+        .ticket-number {
+            font-weight: 700;
+
+            color: #0b3d91;
+
+            font-size: 18px;
+        }
+
+        .status {
+            margin-top: 25px;
+
+            color: #6b7280;
+
+            font-size: 14px;
+
+            line-height: 1.7;
+        }
+
+        .status strong {
+            color: #0b3d91;
+        }
+
+        .warning {
+            display: none;
+
+            margin-top: 20px;
+
+            padding: 12px;
+
+            background: #fff7ed;
+
+            border: 1px solid #fed7aa;
+
+            border-radius: 10px;
+
+            color: #9a3412;
+
+            font-size: 13px;
+        }
+    
+/* GABAY MOBILE PILL/OBLONG FIX */
+@media (max-width: 768px) {
+  .navbar,
+  .nav-bar,
+  .navbar-container,
+  .header-container,
+  .nav-container {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Keep brand compact and prevent the logo/name from squashing */
+  .brand,
+  .logo,
+  .brand-link,
+  .logo-link,
+  .navbar-brand {
+    min-width: 0 !important;
+    max-width: calc(100% - 64px) !important;
+    flex: 1 1 auto !important;
+    overflow: hidden !important;
+  }
+
+  .brand img,
+  .logo img,
+  .brand-logo,
+  .navbar-brand img {
+    max-width: 42px !important;
+    width: auto !important;
+    height: auto !important;
+    flex-shrink: 0 !important;
+  }
+
+  .brand-text,
+  .logo-text,
+  .brand-name,
+  .navbar-brand span {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  /* Hamburger: compact rounded-square, not a stretched oblong */
+  .menu-toggle,
+  .hamburger,
+  .mobile-menu-toggle,
+  .nav-toggle,
+  #menuToggle,
+  #hamburger {
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: 0 0 44px !important;
+    aspect-ratio: 1 / 1 !important;
+    border-radius: 12px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+  }
+
+  .menu-toggle span,
+  .hamburger span,
+  .mobile-menu-toggle span,
+  .nav-toggle span,
+  #menuToggle span,
+  #hamburger span {
+    width: 20px !important;
+    max-width: 20px !important;
+    height: 2px !important;
+    flex: 0 0 auto !important;
+  }
+
+  /* Login/Register pills should fit without becoming stretched */
+  .login-btn,
+  .register-btn,
+  .nav-login,
+  .nav-register,
+  .btn-login,
+  .btn-register {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    flex: 0 1 auto !important;
+    white-space: nowrap !important;
+    border-radius: 10px !important;
+  }
+
+  /* Prevent generic buttons from becoming giant mobile pills */
+  button,
+  .btn,
+  .nav-link {
+    max-width: 100% !important;
+  }
+}
+
+</style>
+</head>
+
+<body>
+<div
+        class="processing-container"
+        id="processingContainer"
+        data-request-id="{{ request_data['id'] }}"
+    >
+
+        <div class="loader"></div>
+
+        <h1>
+            Your Request Is Being Processed
+        </h1>
+
+        <p class="main-text">
+            Please wait while GABAY analyzes your request.
+            The government assistance system is determining
+            the appropriate severity before your request
+            information is displayed.
+        </p>
+
+        <div class="ticket-box">
+
+            <div class="ticket-label">
+                GABAY TICKET NUMBER
+            </div>
+
+            <div class="ticket-number">
+                {{ request_data["ticket_number"] }}
+            </div>
+
+        </div>
+
+        <div
+            class="status"
+            id="statusText"
+        >
+            <strong>
+                Analyzing request...
+            </strong>
+
+            <br>
+
+            Gemini AI is determining the severity.
+        </div>
+
+        <div
+            class="warning"
+            id="warning"
+        >
+            The analysis is taking longer than expected.
+            Please continue waiting. Your request is still
+            being processed.
+        </div>
+
+    </div>
+
+
+    <script>
+
+        // =====================================================
+        // GET REQUEST ID
+        // =====================================================
+
+        const container =
+            document.getElementById(
+                "processingContainer"
+            );
+
+        const requestId =
+            container.dataset.requestId;
+
+
+        // =====================================================
+        // ELEMENTS
+        // =====================================================
+
+        const statusText =
+            document.getElementById(
+                "statusText"
+            );
+
+        const warning =
+            document.getElementById(
+                "warning"
+            );
+
+
+        // =====================================================
+        // SETTINGS
+        // =====================================================
+
+        let attempts = 0;
+
+        const maxAttempts = 300;
+
+        const pollingInterval = 1000;
+
+
+        // =====================================================
+        // CHECK REQUEST STATUS
+        // =====================================================
+
+        async function checkRequestStatus() {
+
+            attempts++;
+
+            try {
+
+                const response = await fetch(
+                    "/api/request-status/" + requestId,
+                    {
+                        method: "GET",
+                        cache: "no-store"
+                    }
+                );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "Status request failed."
+                    );
+
+                }
+
+
+                const data =
+                    await response.json();
+
+
+                console.log(
+                    "GABAY STATUS:",
+                    data
+                );
+
+
+                // =================================================
+                // GEMINI FINISHED
+                // =================================================
+
+                if (data.ready === true) {
+
+                    console.log(
+                        "Gemini analysis completed."
+                    );
+
+                    console.log(
+                        "Final Priority:",
+                        data.priority
+                    );
+
+
+                    statusText.innerHTML =
+                        "<strong>Analysis complete.</strong>" +
+                        "<br>" +
+                        "Severity: " +
+                        data.priority +
+                        "<br>" +
+                        "Opening your request information...";
+
+
+                    warning.style.display =
+                        "none";
+
+
+                    // =================================================
+                    // REDIRECT
+                    // =================================================
+
+                    setTimeout(
+                        function () {
+
+                            window.location.href =
+                                "/request-info/" +
+                                requestId;
+
+                        },
+                        500
+                    );
+
+
+                    return;
+                }
+
+
+                // =================================================
+                // STILL PROCESSING
+                // =================================================
+
+                statusText.innerHTML =
+                    "<strong>Analyzing request...</strong>" +
+                    "<br>" +
+                    "Gemini AI is determining the severity.";
+
+
+                // Show warning after 15 seconds
+
+                if (attempts >= 15) {
+
+                    warning.style.display =
+                        "block";
+
+                }
+
+
+                // =================================================
+                // CONTINUE CHECKING
+                // =================================================
+
+                if (attempts < maxAttempts) {
+
+                    setTimeout(
+                        checkRequestStatus,
+                        pollingInterval
+                    );
+
+                }
+
+
+            } catch (error) {
+
+                console.error(
+                    "GABAY STATUS ERROR:",
+                    error
+                );
+
+
+                statusText.innerHTML =
+                    "<strong>" +
+                    "Still processing your request..." +
+                    "</strong>" +
+                    "<br>" +
+                    "Waiting for the severity analysis to finish.";
+
+
+                if (attempts < maxAttempts) {
+
+                    setTimeout(
+                        checkRequestStatus,
+                        pollingInterval
+                    );
+
+                }
+
+            }
+
+        }
+
+
+        // =====================================================
+        // START
+        // =====================================================
+
+        checkRequestStatus();
+
+    </script>
+</body>
+
+</html>

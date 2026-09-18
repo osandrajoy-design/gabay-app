@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="portal-page emergency-page">
+    <div class="portal-card">
+        <p class="dashboard-label">EMERGENCY REPORT</p>
+        <h1>Select an emergency category</h1>
+        <p class="portal-lead">Choose the type of emergency first. You will then be taken to the emergency report form for that category.</p>
+        <div class="info-card-grid">
+            {% for title, desc in categories %}
+            <article class="info-card emergency-category-card">
+                <div class="emergency-category-icon">!</div>
+                <h2>{{ title }}</h2>
+                <p>{{ desc }}</p>
+                <a class="btn primary" href="{{ url_for('emergency_report_form_query') }}?category={{ title|urlencode }}">Report {{ title }}</a>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</main>
+{% endblock %}

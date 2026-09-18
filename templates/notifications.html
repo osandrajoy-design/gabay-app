@@ -1,0 +1,4 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="portal-page"><div class="portal-card"><p class="dashboard-label">CITIZEN PORTAL</p><h1>Notifications</h1><p>Updates generated from real request events.</p><div class="notification-list">{% for item in notifications %}<article class="notification-item {% if not item.is_read %}unread{% endif %}"><strong>{{ item.title }}</strong><p>{{ item.message }}</p><small>{{ item.created_at }}</small></article>{% else %}<div class="portal-empty">No notifications yet.</div>{% endfor %}</div></div></main>
+{% endblock %}

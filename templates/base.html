@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>GABAY</title>
+
+
+    <!-- Google Fonts -->
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+
+    <!-- CSS -->
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+</head>
+
+
+<body class="gabay-page">
+
+
+    <!-- =========================
+         NAVBAR
+    ========================== -->
+<nav class="navbar" id="pageTop">
+
+        <!-- LOGO -->
+
+        <div class="logo">
+
+            {% if session.get("user_id") %}
+                <a class="brand-link" aria-label="GABAY home" href="{{ url_for('admin_dashboard') if session.get('role') == 'admin' else (url_for('government_dashboard') if session.get('role') in ['government','gov_employee','government_employee'] else url_for('dashboard')) }}">
+            {% else %}
+                <a class="brand-link" aria-label="GABAY home" href="{{ url_for('index') }}">
+            {% endif %}
+                    <img class="brand-logo" src="{{ url_for('static', filename='images/gabay-logo.png') }}" alt="GABAY emblem">
+                    <span class="brand-copy">
+                        <span class="brand-name">GABAY</span>
+                        <span class="brand-tagline">Government Assistance, Basic-services Action &amp; Yield</span>
+                    </span>
+                </a>
+
+        </div>
+
+
+
+        <!-- MOBILE MENU BUTTON -->
+        <button
+            type="button"
+            class="nav-hamburger"
+            id="navHamburger"
+            data-mobile-nav-toggle="true"
+            aria-label="Open navigation menu"
+            aria-controls="mainNavLinks dashboardSidebar"
+            aria-expanded="false"
+        ><span class="hamburger-line hamburger-line-1" aria-hidden="true"></span><span class="hamburger-line hamburger-line-2" aria-hidden="true"></span><span class="hamburger-line hamburger-line-3" aria-hidden="true"></span></button>
+
+        <!-- NAVIGATION -->
+
+        <div class="nav-links" id="mainNavLinks">
+
+
+            {% if session.get("user_id") %}
+
+                <!-- LOGGED-IN NAVBAR -->
+
+                <a class="{% if request.endpoint in ['index', 'dashboard', 'government_dashboard', 'admin_dashboard'] %}active{% endif %}" href="{{ url_for('admin_dashboard') if session.get('role') == 'admin' else (url_for('government_dashboard') if session.get('role') in ['government','gov_employee','government_employee'] else url_for('dashboard')) }}">Home</a>
+                {% if session.get('role') == 'citizen' %}
+                <a class="{% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a class="{% if request.endpoint in ['my_requests', 'request_info'] %}active{% endif %}" href="{{ url_for('my_requests') }}">My Requests</a>
+                <a class="{% if request.endpoint == 'notifications_page' %}active{% endif %}" href="{{ url_for('notifications_page') }}">Notifications</a>
+                <a class="{% if request.endpoint == 'citizen_ai_chat' %}active{% endif %}" href="{{ url_for('citizen_ai_chat') }}">AI Assistance</a>
+                {% else %}
+                <a class="{% if request.endpoint == 'government_dashboard' %}active{% endif %}" href="{{ url_for('government_dashboard') }}">Dashboard</a>
+                {% endif %}
+                <a class="{% if request.endpoint == 'services_page' %}active{% endif %}" href="{{ url_for('services_page') }}">Services</a>
+                <a class="{% if request.endpoint == 'about_page' %}active{% endif %}" href="{{ url_for('about_page') }}">About</a>
+
+                <a
+                    href="{{ url_for('logout') }}"
+                    class="nav-logout"
+                >
+                    Logout
+                </a>
+
+
+            {% else %}
+
+                <!-- PUBLIC NAVBAR -->
+
+                <a href="{{ url_for('index') }}">Home</a>
+                <a class="{% if request.endpoint == 'services_page' %}active{% endif %}" href="{{ url_for('services_page') }}">Services</a>
+                <a class="{% if request.endpoint == 'about_page' %}active{% endif %}" href="{{ url_for('about_page') }}">About</a>
+                <a class="{% if request.endpoint in ['public_emergency', 'emergency_report_form', 'emergency_report_form_query'] %}active{% endif %}" href="{{ url_for('public_emergency') }}">Emergency</a>
+
+                <a href="{{ url_for('login') }}">
+                    Login
+                </a>
+                <a href="{{ url_for('login', role='government') }}">Government</a>
+                <a href="{{ url_for('login', role='admin') }}">Admin</a>
+
+                <a
+                    href="{{ url_for('register') }}"
+                    class="nav-register"
+                >
+                    Register
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    </nav>
+
+
+
+    <!-- =========================
+         PAGE CONTENT
+    ========================== -->
+
+    {% block content %}
+
+    {% endblock %}
+
+
+
+    <footer class="gabay-footer">
+      <div class="footer-glow" aria-hidden="true"></div>
+
+      <div class="footer-inner">
+
+        <div class="footer-brand">
+          <a class="footer-logo-link" href="{{ url_for('index') }}" aria-label="GABAY home">
+            <img class="footer-logo-mark" src="{{ url_for('static', filename='images/gabay-logo.png') }}" alt="">
+            <span class="footer-logo">GABAY</span>
+          </a>
+          <p>Government Assistance, Basic-services Action &amp; Yield — a citizen-focused platform for assistance, reporting, and response.</p>
+
+          <a class="footer-emergency-btn" href="{{ url_for('public_emergency') }}">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4"/><circle cx="12" cy="17.2" r=".4" fill="currentColor"/></svg>
+            Report an emergency
+          </a>
+        </div>
+
+        <div class="footer-col">
+          <strong>Explore</strong>
+          <a href="{{ url_for('index') }}">Home</a>
+          <a class="{% if request.endpoint == 'services_page' %}active{% endif %}" href="{{ url_for('services_page') }}">Services</a>
+          <a class="{% if request.endpoint == 'about_page' %}active{% endif %}" href="{{ url_for('about_page') }}">About</a>
+          <a class="{% if request.endpoint in ['public_emergency', 'emergency_report_form', 'emergency_report_form_query'] %}active{% endif %}" href="{{ url_for('public_emergency') }}">Emergency</a>
+        </div>
+
+        <div class="footer-col">
+          <strong>Account</strong>
+          {% if session.get("user_id") %}
+            <a href="{{ url_for('admin_dashboard') if session.get('role') == 'admin' else (url_for('government_dashboard') if session.get('role') in ['government','gov_employee','government_employee'] else url_for('dashboard')) }}">Dashboard</a>
+            {% if session.get('role') == 'citizen' %}
+            <a class="{% if request.endpoint in ['my_requests', 'request_info'] %}active{% endif %}" href="{{ url_for('my_requests') }}">My Requests</a>
+            <a class="{% if request.endpoint == 'notifications_page' %}active{% endif %}" href="{{ url_for('notifications_page') }}">Notifications</a>
+            {% endif %}
+            <a href="{{ url_for('logout') }}">Logout</a>
+          {% else %}
+            <a href="{{ url_for('login') }}">Login</a>
+            <a href="{{ url_for('register') }}">Register</a>
+          {% endif %}
+        </div>
+
+        <div class="footer-team">
+          <strong>GABAY Innovators</strong>
+          <p>Developed by <b>Jan Rayven Tamayo</b> and the <b>GABAY Innovators</b> team.</p>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+        <span>© 2026 GABAY. All rights reserved.</span>
+        <a class="footer-to-top" href="#pageTop">
+          Back to top
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+        </a>
+      </div>
+    </footer>
+    <script>
+    (function () {
+        const button = document.getElementById("navHamburger");
+        const menu = document.getElementById("mainNavLinks");
+        const dashboardSidebar = document.querySelector(".dashboard .sidebar");
+        if (!button || !menu) return;
+
+        // On the citizen dashboard, the hamburger controls the dashboard
+        // sidebar. The sidebar is hidden on mobile until this button is pressed.
+        const isDashboardNav = !!dashboardSidebar;
+
+        // Always start mobile navigation CLOSED. This prevents a stale
+        // class/state from browser history or responsive resizing from
+        // leaving the navbar visible before the hamburger is pressed.
+        function closeMenu() {
+            menu.classList.remove("is-open");
+            if (dashboardSidebar) dashboardSidebar.classList.remove("is-open");
+            button.classList.remove("is-open");
+            button.setAttribute("aria-expanded", "false");
+            button.setAttribute("aria-label", "Open navigation menu");
+        }
+
+        // Force a clean initial state before registering interactions.
+        closeMenu();
+
+        button.addEventListener("click", function () {
+            if (isDashboardNav && window.innerWidth <= 760) {
+                const open = dashboardSidebar.classList.toggle("is-open");
+                menu.classList.remove("is-open");
+                button.classList.toggle("is-open", open);
+                button.setAttribute("aria-expanded", String(open));
+                button.setAttribute("aria-label", open ? "Close navigation menu" : "Open navigation menu");
+                return;
+            }
+
+            const open = menu.classList.toggle("is-open");
+            button.classList.toggle("is-open", open);
+            button.setAttribute("aria-expanded", String(open));
+            button.setAttribute("aria-label", open ? "Close navigation menu" : "Open navigation menu");
+        });
+
+        menu.querySelectorAll("a").forEach(function (link) {
+            link.addEventListener("click", closeMenu);
+        });
+
+        document.addEventListener("click", function (event) {
+            const menuOpen = menu.classList.contains("is-open");
+            const sidebarOpen = dashboardSidebar && dashboardSidebar.classList.contains("is-open");
+            if (!menuOpen && !sidebarOpen) return;
+            if (!menu.contains(event.target) && !button.contains(event.target) && !(dashboardSidebar && dashboardSidebar.contains(event.target))) closeMenu();
+        });
+
+        window.addEventListener("resize", function () {
+            if (window.innerWidth > 760) closeMenu();
+        });
+    })();
+        // Global page animations: subtle, fast, and disabled for reduced-motion users.
+        const animatedSelectors = [
+            "main > section", "main > .section", ".hero", ".home-hero",
+            ".service-card", ".feature-card", ".info-card", ".stat-card",
+            ".dashboard-card", ".admin-stat", ".admin-panel", ".auth-card",
+            ".register-card", ".form-section", ".request-card", ".notification-card",
+            ".portal-card", ".service-item", ".home-feature-row > div",
+            ".hero-panel-card", ".home-hero-stat-card", ".gabay-footer .footer-inner"
+        ];
+
+        const prefersReducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (!prefersReducedMotion) {
+            document.documentElement.classList.add("gabay-motion-enabled");
+            const elements = [];
+            animatedSelectors.forEach(function (selector) {
+                document.querySelectorAll(selector).forEach(function (el) {
+                    if (!el.closest("nav")) {
+                        el.classList.add("gabay-reveal");
+                        elements.push(el);
+                    }
+                });
+            });
+
+            if ("IntersectionObserver" in window) {
+                const observer = new IntersectionObserver(function (entries, obs) {
+                    entries.forEach(function (entry) {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add("gabay-visible");
+                            obs.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.10, rootMargin: "0px 0px -35px 0px" });
+                elements.forEach(function (el, index) {
+                    el.style.setProperty("--gabay-delay", Math.min((index % 6) * 70, 350) + "ms");
+                    observer.observe(el);
+                });
+            } else {
+                elements.forEach(function (el) { el.classList.add("gabay-visible"); });
+            }
+        }
+    </script>
+</body>
+
+</html>

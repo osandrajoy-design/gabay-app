@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="ai-page">
+    <div class="ai-page-shell">
+        <a class="ai-back" href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
+
+        <header class="ai-page-header">
+            <div>
+                <span class="ai-kicker">GABAY AI</span>
+                <h1>Government Assistance</h1>
+                <p>Talk one-on-one with GABAY AI about government services, assistance, requests, and next steps.</p>
+            </div>
+        </header>
+
+        <main class="ai-chat-card" aria-label="GABAY AI chat">
+            <div class="ai-chat-messages" id="aiChatMessages" aria-live="polite">
+                <div class="ai-chat-bubble ai-chat-bubble-ai">
+                    Hi! I’m GABAY AI. What government assistance or service do you need help with today?
+                </div>
+            </div>
+
+            <form class="ai-chat-composer" id="aiChatForm">
+                <label class="sr-only" for="aiChatInput">Message GABAY AI</label>
+                <textarea id="aiChatInput" rows="2" maxlength="4000" placeholder="Ask about government assistance..." required></textarea>
+                <button type="submit" id="aiChatSend">Send</button>
+            </form>
+        </main>
+    </div>
+</div>
+
+<style>
+.ai-page { min-height: calc(100vh - 80px); padding: 34px 20px 50px; background: #f8fafc; }
+.ai-page-shell { width: min(980px, 100%); margin: 0 auto; }
+.ai-back { display:inline-block; margin-bottom:18px; color:#2563eb; text-decoration:none; font-weight:700; }
+.ai-back:hover { text-decoration:underline; }
+.ai-page-header { background:#fff; border:1px solid #e2e8f0; border-radius:22px 22px 0 0; padding:26px 30px; }
+.ai-kicker { font-size:.72rem; font-weight:800; letter-spacing:.1em; color:#2563eb; }
+.ai-page-header h1 { margin:4px 0 6px; color:#0f172a; font-size:clamp(1.5rem, 3vw, 2rem); }
+.ai-page-header p { margin:0; color:#64748b; line-height:1.55; }
+.ai-chat-card { min-height:620px; height:calc(100vh - 280px); max-height:760px; display:flex; flex-direction:column; overflow:hidden; background:#fff; border:1px solid #e2e8f0; border-top:0; border-radius:0 0 22px 22px; box-shadow:0 18px 45px rgba(15,23,42,.08); }
+.ai-chat-messages { flex:1; min-height:0; overflow:auto; padding:24px; display:flex; flex-direction:column; gap:12px; background:#f8fafc; }
+.ai-chat-bubble { max-width:82%; padding:12px 15px; border-radius:16px; line-height:1.5; white-space:pre-wrap; overflow-wrap:anywhere; }
+.ai-chat-bubble-ai { align-self:flex-start; background:#fff; border:1px solid #e2e8f0; color:#1e293b; border-bottom-left-radius:5px; }
+.ai-chat-bubble-user { align-self:flex-end; background:#2563eb; color:#fff; border-bottom-right-radius:5px; }
+.ai-chat-thinking { display:inline-flex; align-items:center; gap:5px; }
+.ai-chat-thinking span { width:6px; height:6px; border-radius:50%; background:currentColor; opacity:.35; animation:aiThinking 1.2s infinite ease-in-out; }
+.ai-chat-thinking span:nth-child(2){animation-delay:.15s}.ai-chat-thinking span:nth-child(3){animation-delay:.3s}
+@keyframes aiThinking { 0%,60%,100%{transform:translateY(0);opacity:.3}30%{transform:translateY(-4px);opacity:1} }
+.ai-chat-composer { display:flex; gap:10px; padding:16px; border-top:1px solid #e5e7eb; background:#fff; }
+.ai-chat-composer textarea { flex:1; resize:none; min-height:48px; max-height:130px; border:1px solid #cbd5e1; border-radius:14px; padding:12px; font:inherit; outline:none; }
+.ai-chat-composer textarea:focus { border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.12); }
+.ai-chat-composer button { align-self:stretch; min-width:90px; border:0; border-radius:14px; background:#2563eb; color:#fff; font-weight:700; cursor:pointer; }
+.ai-chat-composer button:disabled, .ai-chat-composer textarea:disabled { opacity:.55; cursor:not-allowed; }
+/* Mobile-first AI page: keep the chat usable above the browser controls/keyboard. */
+body:has(.ai-page) { overflow-x:hidden; }
+@media (max-width:760px) {
+    body:has(.ai-page) .navbar .nav-links {
+        display:none !important;
+        visibility:hidden !important;
+        opacity:0 !important;
+        pointer-events:none !important;
+    }
+    body:has(.ai-page) .navbar .nav-links.is-open {
+        display:flex !important;
+        visibility:visible !important;
+        opacity:1 !important;
+        pointer-events:auto !important;
+    }
+    body:has(.ai-page) .navbar .nav-hamburger {
+        background:#eef5ff !important;
+        border-color:#b9d5f5 !important;
+    }
+    body:has(.ai-page) .gabay-footer { display:none !important; }
+    .ai-page {
+        min-height:calc(100dvh - 68px);
+        padding:12px 10px 14px;
+        box-sizing:border-box;
+    }
+    .ai-page-shell { width:100%; max-width:none; }
+    .ai-back {
+        margin:0 4px 10px;
+        min-height:40px;
+        display:inline-flex;
+        align-items:center;
+        font-size:14px;
+    }
+    .ai-page-header {
+        padding:16px 16px 14px;
+        border-radius:18px 18px 0 0;
+    }
+    .ai-kicker { font-size:.66rem; }
+    .ai-page-header h1 { font-size:1.35rem; margin-top:3px; }
+    .ai-page-header p { font-size:.86rem; line-height:1.45; }
+    .ai-chat-card {
+        height:calc(100dvh - 210px);
+        min-height:0;
+        max-height:none;
+        border-radius:0 0 18px 18px;
+        box-shadow:0 10px 28px rgba(15,23,42,.08);
+    }
+    .ai-chat-messages {
+        padding:14px 12px;
+        gap:10px;
+        -webkit-overflow-scrolling:touch;
+        overscroll-behavior:contain;
+    }
+    .ai-chat-bubble {
+        max-width:88%;
+        padding:10px 12px;
+        font-size:14px;
+        line-height:1.45;
+        border-radius:14px;
+    }
+    .ai-chat-composer {
+        gap:8px;
+        padding:10px;
+        padding-bottom:max(10px, env(safe-area-inset-bottom));
+        align-items:flex-end;
+    }
+    .ai-chat-composer textarea {
+        min-width:0;
+        min-height:44px;
+        max-height:110px;
+        padding:10px 11px;
+        font-size:16px; /* prevents iOS zoom on focus */
+        border-radius:12px;
+    }
+    .ai-chat-composer button {
+        min-width:76px;
+        min-height:44px;
+        border-radius:12px;
+        font-size:14px;
+    }
+}
+@media (max-width:420px) {
+    .ai-page { padding-inline:7px; }
+    .ai-back { margin-left:2px; }
+    .ai-page-header { padding:14px 13px 12px; }
+    .ai-page-header h1 { font-size:1.2rem; }
+    .ai-page-header p { font-size:.8rem; }
+    .ai-chat-card { height:calc(100dvh - 194px); }
+    .ai-chat-messages { padding:12px 9px; }
+    .ai-chat-bubble { max-width:92%; font-size:13.5px; }
+    .ai-chat-composer { padding-inline:8px; }
+    .ai-chat-composer button { min-width:70px; }
+}
+@media (max-height:620px) and (max-width:760px) {
+    .ai-page { padding-top:7px; padding-bottom:8px; }
+    .ai-back { margin-bottom:5px; min-height:34px; }
+    .ai-page-header { padding:10px 13px; }
+    .ai-page-header p { display:none; }
+    .ai-chat-card { height:calc(100dvh - 136px); }
+}
+</style>
+
+<script>
+(() => {
+    const form = document.getElementById('aiChatForm');
+    const input = document.getElementById('aiChatInput');
+    const send = document.getElementById('aiChatSend');
+    const messages = document.getElementById('aiChatMessages');
+    const history = [];
+    let aiResponding = false;
+
+    if (!form) return;
+
+    function addBubble(text, who) {
+        const el = document.createElement('div');
+        el.className = `ai-chat-bubble ai-chat-bubble-${who}`;
+        el.textContent = text;
+        messages.appendChild(el);
+        messages.scrollTop = messages.scrollHeight;
+        return el;
+    }
+
+    function addThinking() {
+        const el = document.createElement('div');
+        el.className = 'ai-chat-bubble ai-chat-bubble-ai ai-chat-thinking';
+        el.setAttribute('aria-label', 'AI is thinking');
+        el.innerHTML = '<span></span><span></span><span></span><span style="margin-left:3px">Thinking...</span>';
+        messages.appendChild(el);
+        messages.scrollTop = messages.scrollHeight;
+        return el;
+    }
+
+    function setResponding(value) {
+        aiResponding = value;
+        input.disabled = value;
+        send.disabled = value;
+        send.textContent = value ? 'Responding…' : 'Send';
+    }
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (aiResponding) return;
+        const text = input.value.trim();
+        if (!text) return;
+
+        addBubble(text, 'user');
+        history.push({role:'user', content:text});
+        input.value = '';
+        setResponding(true);
+        const thinking = addThinking();
+
+        try {
+            const response = await fetch('{{ url_for("citizen_ai_assistance") }}', {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({message:text, history})
+            });
+            const data = await response.json();
+            thinking.remove();
+            if (!response.ok || !data.success) throw new Error(data.error || 'Unable to get an AI response.');
+            addBubble(data.reply, 'ai');
+            history.push({role:'assistant', content:data.reply});
+        } catch (error) {
+            thinking.remove();
+            addBubble(error.message || 'Sorry, I could not respond right now. Please try again.', 'ai');
+        } finally {
+            setResponding(false);
+            input.focus();
+        }
+    });
+
+    input.focus();
+})();
+</script>
+{% endblock %}

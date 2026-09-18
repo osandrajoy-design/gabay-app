@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+.gov-report-page{max-width:1180px;margin:24px auto;padding:0 18px}.gov-report-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}.gov-report-head h1{margin:4px 0}.gov-report-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:18px}.gov-card{background:#fff;border:1px solid #e4e7ec;border-radius:16px;padding:20px;box-shadow:0 4px 16px rgba(16,24,40,.05)}.gov-card h2{margin:0 0 14px}.gov-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.gov-field{padding:12px;border-radius:10px;background:#f8fafc}.gov-label{display:block;font-size:11px;font-weight:800;color:#667085;text-transform:uppercase;margin-bottom:5px}.gov-value{white-space:pre-wrap;word-break:break-word}.reporter-face{width:180px;height:180px;border-radius:18px;object-fit:cover;border:3px solid #d0d5dd;display:block}.face-placeholder{width:180px;height:180px;border-radius:18px;background:#f2f4f7;display:grid;place-items:center;color:#667085;text-align:center;padding:15px}.gov-ai{white-space:pre-wrap;line-height:1.55;background:#f8fafc;border:1px solid #eaecf0;border-radius:12px;padding:16px}.gov-edit textarea,.gov-edit input,.gov-edit select{width:100%;box-sizing:border-box;padding:10px;border:1px solid #d0d5dd;border-radius:9px;font:inherit}.gov-edit{display:grid;gap:12px}.gov-edit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.gov-edit label{font-size:12px;font-weight:700;color:#475467}.gov-edit label>*{margin-top:5px}.full{grid-column:1/-1}.gov-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}.gov-btn{border:0;border-radius:9px;padding:10px 14px;font-weight:800;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}.primary{background:#0b3d91;color:white}.secondary{background:#eef2f6;color:#344054}.danger{background:#b42318;color:#fff}.status{font-size:13px;color:#475467;align-self:center}.map{width:100%;height:300px;border-radius:12px;overflow:hidden}.critical{color:#b42318;font-weight:900}@media(max-width:800px){.gov-report-grid{grid-template-columns:1fr}.gov-meta,.gov-edit-grid{grid-template-columns:1fr}.full{grid-column:auto}.gov-report-head{flex-direction:column}.reporter-face,.face-placeholder{width:140px;height:140px}}
+</style>
+<div class="gov-report-page">
+  <div class="gov-report-head">
+    <div><div class="government-section-label">GOVERNMENT REPORT VIEW</div><h1>{{ report.report_title or report.category or 'Citizen Report' }}</h1><div>{{ report.ticket_number }} · {{ report.created_at }} · <span class="{% if report.priority == 'Critical' %}critical{% endif %}">{{ report.priority }}</span></div></div>
+    <a class="gov-btn secondary" href="{{ url_for('government_dashboard') }}">← Back to Dashboard</a>
+  </div>
+  <div class="gov-report-grid">
+    <main>
+      <section class="gov-card">
+        <h2>Report Details</h2>
+        <div class="gov-meta">
+          <div class="gov-field"><span class="gov-label">Reporter</span><div class="gov-value">{{ report.full_name or 'Not provided' }}</div></div>
+          <div class="gov-field"><span class="gov-label">Category</span><div class="gov-value">{{ report.category or 'Not provided' }}</div></div>
+          <div class="gov-field"><span class="gov-label">Status</span><div class="gov-value">{{ report.status }}</div></div>
+          <div class="gov-field"><span class="gov-label">Address</span><div class="gov-value">{{ report.address or 'GPS location provided' }}</div></div>
+          <div class="gov-field full"><span class="gov-label">Citizen Description</span><div class="gov-value">{{ report.description or 'Not provided' }}</div></div>
+        </div>
+      </section>
+      <section class="gov-card" style="margin-top:18px"><h2>AI Written Report</h2><div id="aiReport" class="gov-ai">{{ report.ai_report or 'Generating AI report…' }}</div></section>
+      {% if report.status != 'Cancelled' %}<section class="gov-card gov-edit" style="margin-top:18px">
+        <h2>Edit Report / AI Written Text</h2>
+        <div class="gov-edit-grid">
+          <label>Report Title<input id="reportTitle" value="{{ report.report_title or report.category or '' }}"></label>
+          <label>Category<input id="category" value="{{ report.category or '' }}"></label>
+          <label>Location<input id="address" value="{{ report.address or '' }}"></label>
+          <label>Priority<select id="priority">{% for p in ['Low','Moderate','High','Critical'] %}<option {% if report.priority == p %}selected{% endif %}>{{ p }}</option>{% endfor %}</select></label>
+          <label>Urgency<select id="urgency">{% for p in ['Low','Moderate','High','Critical'] %}<option {% if report.urgency == p %}selected{% endif %}>{{ p }}</option>{% endfor %}</select></label>
+          <label>Department<input id="department" value="{{ report.assigned_department or '' }}"></label>
+          <label class="full">Citizen Description<textarea id="description" rows="5">{{ report.description or '' }}</textarea></label>
+          <label class="full">AI Written Report — editable<textarea id="aiText" rows="14">{{ report.ai_report or '' }}</textarea></label>
+        </div>
+        <div class="gov-actions"><button id="save" class="gov-btn primary">Save Changes</button><span id="saveStatus" class="status"></span></div>
+      </section>{% endif %}
+      {% if report.status != 'Cancelled' %}<section class="gov-card" style="margin-top:18px"><h2>Forward Report{% if report.priority == 'Critical' %} — Critical{% endif %}</h2><div class="gov-actions"><select id="forwardDepartment" class="gov-btn secondary">{% for name in ['Philippine National Police','Bureau of Fire Protection','Local Disaster Risk Reduction and Management Office','City/Municipal Health Office','Social Welfare and Development Office','Public Works and Engineering Office'] %}<option value="{{ name }}">{{ name }}</option>{% endfor %}</select><select id="forwardMethod" class="gov-btn secondary"><option value="email">Email</option><option value="phone">Phone</option></select><button id="forward" class="gov-btn danger">Forward Report</button><span id="forwardStatus" class="status"></span></div></section>{% else %}<section class="gov-card" style="margin-top:18px"><h2>Cancelled Report — View Only</h2><p class="status">This report was cancelled. Government personnel can view the saved AI written report and face-verification capture, but cannot edit, regenerate, or forward it.</p></section>{% endif %}
+    </main>
+    <aside>
+      <section class="gov-card"><h2>Reporter Face</h2><p class="status">The FACE VERIFICATION capture taken when this report was submitted is shown only to authorized government personnel for identity/human-verification review. This is not the reporter's profile photo.</p>{% if report.verification_image %}<img class="reporter-face" src="{{ url_for('verification_image', filename=report.verification_image) }}" alt="Face verification capture">{% else %}<div class="face-placeholder">No face scan is available for this report.</div>{% endif %}<div class="gov-field" style="margin-top:14px"><span class="gov-label">Specific Address</span><div class="gov-value">{{ report.address or 'Address not available' }}</div></div></section>
+      <section class="gov-card" style="margin-top:18px"><h2>Location</h2><div id="map" class="map"></div></section>
+    </aside>
+  </div>
+</div>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script>
+const id={{ report.id|tojson }};
+async function ensureAI(){const box=document.getElementById('aiReport'); if(box.textContent.trim()!=='Generating AI report…') return; const cancelled={{ (report.status == 'Cancelled')|tojson }}; if(cancelled){box.textContent='No saved AI written report is available for this cancelled request.'; return;} try{const r=await fetch('/api/government/ai-report/'+id); const d=await r.json(); if(d.success){box.textContent=d.report; const aiText=document.getElementById('aiText'); if(aiText) aiText.value=d.report;}}catch(e){box.textContent='Unable to generate the AI report.'}}
+ensureAI();
+document.getElementById('save')?.addEventListener('click', async()=>{const payload={report_title:reportTitle.value,category:category.value,address:address.value,priority:priority.value,urgency:urgency.value,assigned_department:department.value,description:description.value,ai_report:aiText.value}; const r=await fetch('/api/government/request/'+id+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); const d=await r.json(); saveStatus.textContent=d.message||d.error||'Saved'; if(d.success) aiReport.textContent=aiText.value;});
+document.getElementById('forward')?.addEventListener('click', async()=>{if(!confirm('Forward this critical report to the selected department?'))return; const r=await fetch('/api/government/forward-request/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({department:forwardDepartment.value,method:forwardMethod.value})}); const d=await r.json(); forwardStatus.textContent=d.message||d.error||'Forwarded'; if(d.success) document.getElementById('forward').disabled=true;});
+const address={{ (report.address or '')|tojson }}; if(address&&window.L){fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q='+encodeURIComponent(address),{headers:{'Accept':'application/json'}}).then(r=>r.json()).then(items=>{if(!items.length)return; const m=L.map('map').setView([Number(items[0].lat),Number(items[0].lon)],17);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors'}).addTo(m);L.marker([Number(items[0].lat),Number(items[0].lon)]).addTo(m).bindPopup('<strong>Reported Address</strong>').openPopup();}).catch(()=>{});}
+</script>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card unified-login-card">
+        <div class="login-brand-mark">GABAY</div>
+        <h1>Welcome Back</h1>
+        <p>Sign in to your GABAY account</p>
+
+        <div class="login-role-tabs" role="tablist" aria-label="Choose account type">
+            <a class="login-role-tab {% if selected_role == 'citizen' %}active{% endif %}" href="{{ url_for('login', role='citizen') }}" role="tab" aria-selected="{{ 'true' if selected_role == 'citizen' else 'false' }}">Citizen</a>
+            <a class="login-role-tab {% if selected_role == 'government' %}active{% endif %}" href="{{ url_for('login', role='government') }}" role="tab" aria-selected="{{ 'true' if selected_role == 'government' else 'false' }}">Government</a>
+            <a class="login-role-tab {% if selected_role == 'admin' %}active{% endif %}" href="{{ url_for('login', role='admin') }}" role="tab" aria-selected="{{ 'true' if selected_role == 'admin' else 'false' }}">Administrator</a>
+        </div>
+
+        <div class="login-role-caption">
+            {% if selected_role == 'admin' %}
+                Administrator access — manage accounts, reports, and system settings.
+            {% elif selected_role == 'government' %}
+                Government personnel access — review requests and respond to emergencies.
+            {% else %}
+                Citizen access — request assistance and submit reports.
+            {% endif %}
+        </div>
+
+        {% if error %}<div class="form-error" role="alert">{{ error }}</div>{% endif %}
+
+        <form method="POST" action="{{ url_for('login') }}" autocomplete="on">
+            <input type="hidden" name="login_role" value="{{ selected_role }}">
+            <label for="login-email">Email</label>
+            <input id="login-email" type="email" name="email" placeholder="Enter your email" autocomplete="email" required>
+            <label for="login-password">Password</label>
+            <input id="login-password" type="password" name="password" placeholder="Enter your password" autocomplete="current-password" required>
+            <button type="submit" class="login-submit">Login as {{ 'Administrator' if selected_role == 'admin' else ('Government Personnel' if selected_role == 'government' else 'Citizen') }}</button>
+        </form>
+
+        {% if selected_role == 'citizen' %}
+        <p>Don't have an account? <a href="{{ url_for('register') }}">Register</a></p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

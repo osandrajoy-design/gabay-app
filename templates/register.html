@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="register-page">
+
+    <div class="register-card">
+
+        <div class="register-header">
+            {% if error %}<div class="form-error" role="alert">{{ error }}</div>{% endif %}
+            <p class="register-label">GABAY ACCOUNT</p>
+
+            <h1>Create an Account</h1>
+
+            <p>
+                Register your account and verify your identity.
+            </p>
+        </div>
+
+
+        <form method="POST" id="registerForm">
+
+            <!-- PERSONAL INFORMATION -->
+
+            <div class="form-section">
+
+                <h2>Personal Information</h2>
+
+                <label>Full Name</label>
+
+                <input
+                    type="text"
+                    name="full_name"
+                    placeholder="Enter your full name"
+                    required
+                >
+
+
+                <label>Email Address</label>
+
+                <input
+                    type="email"
+                    name="email"
+                    placeholder="Enter your email"
+                    required
+                >
+
+
+                <label>Password</label>
+
+                <input
+                    type="password"
+                    name="password"
+                    placeholder="Create a password"
+                    required
+                >
+
+            </div>
+
+
+            <!-- FACE SCAN -->
+
+            <div class="form-section">
+
+                <h2>Face Verification</h2>
+
+                <p class="section-description">
+                    Position your face inside the guide.
+                    Your captured image will be used as your
+                    GABAY profile picture.
+                </p>
+
+
+                <div class="camera-container">
+
+                    <video
+                        id="camera"
+                        autoplay
+                        playsinline
+                    ></video>
+
+                    <div class="face-guide"></div>
+
+                    <div class="camera-message" id="cameraMessage">
+                        Camera is not started
+                    </div>
+
+                </div>
+
+
+                <div class="camera-buttons">
+
+                    <button
+                        type="button"
+                        id="startCamera"
+                        class="camera-button"
+                    >
+                        Start Camera
+                    </button>
+
+
+                    <button
+                        type="button"
+                        id="captureFace"
+                        class="camera-button capture-button"
+                        disabled
+                    >
+                        Capture Face
+                    </button>
+
+                </div>
+
+
+                <!-- CAPTURED IMAGE -->
+
+                <div
+                    class="preview-container"
+                    id="previewContainer"
+                >
+
+                    <h3>Profile Photo</h3>
+
+                    <img
+                        id="facePreview"
+                        alt="Captured profile photo"
+                    >
+
+                    <button
+                        type="button"
+                        id="retakeFace"
+                    >
+                        Retake
+                    </button>
+
+                </div>
+
+
+                <input
+                    type="hidden"
+                    name="face_image"
+                    id="faceImage"
+                >
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="register-button"
+                id="registerButton"
+            >
+                Create GABAY Account
+            </button>
+
+        </form>
+
+
+        <p class="login-link">
+            Already have an account?
+            <a href="/login">Login</a>
+        </p>
+
+    </div>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+<script src="{{ url_for('static', filename='js/face-scan.js') }}"></script>
+
+{% endblock %}

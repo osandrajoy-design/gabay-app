@@ -1,0 +1,2930 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Government Dashboard | GABAY</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/government.css') }}"
+    >
+
+    <!-- Leaflet map -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <style>
+        /* =====================================================
+           CRITICAL ALARM
+        ===================================================== */
+
+        #criticalAlarmOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 120000;
+            background: rgba(100, 0, 0, 0.96);
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 25px;
+        }
+
+        .critical-alarm-box {
+            width: min(900px, 95%);
+            max-height: 94vh;
+            overflow-y: auto;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 30px;
+            color: #111827;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, .45);
+        }
+
+        .alarm-icon {
+            width: 75px;
+            height: 75px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            background: #dc2626;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: 800;
+            animation: criticalPulse 1s infinite;
+        }
+
+        @keyframes criticalPulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.12);
+                opacity: .7;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .alarm-title {
+            text-align: center;
+            color: #dc2626;
+            margin-bottom: 5px;
+        }
+
+        .alarm-warning {
+            text-align: center;
+            color: #667085;
+            margin-bottom: 25px;
+        }
+
+        .alarm-report {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .alarm-report-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+
+        .alarm-field {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .alarm-field.full {
+            grid-column: 1 / -1;
+        }
+
+        .alarm-field-label {
+            display: block;
+            color: #667085;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .alarm-field-value {
+            color: #172033;
+            font-size: 13px;
+            font-weight: 600;
+            word-break: break-word;
+        }
+
+        #reporterMap {
+            width: 100%;
+            height: 300px;
+            border-radius: 12px;
+            margin-top: 15px;
+            border: 1px solid #d9dee7;
+        }
+
+        .map-screenshot-preview {
+            display: none;
+            margin-top: 14px;
+            background: white;
+            border: 1px solid #d9dee7;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .map-screenshot-preview img {
+            width: 100%;
+            display: block;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .report-preview-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .report-preview-badge {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+            border-radius: 999px;
+            padding: 4px 9px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .04em;
+        }
+
+        .ai-report-document {
+            background: white;
+            border: 1px solid #d9e0ea;
+            border-radius: 10px;
+            padding: 18px;
+            color: #172033;
+            font-size: 13px;
+            line-height: 1.65;
+        }
+
+        .ai-report-document .report-heading {
+            font-size: 14px;
+            font-weight: 800;
+            color: #0b3d91;
+            margin: 14px 0 5px;
+        }
+
+        .ai-report-document .report-heading:first-child {
+            margin-top: 0;
+        }
+
+        .ai-report-document .report-line {
+            margin: 3px 0;
+        }
+
+        .report-preview-note {
+            margin-top: 10px;
+            padding: 10px 12px;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            color: #854d0e;
+            font-size: 11px;
+        }
+
+        .forward-panel {
+            background: #eef4ff;
+            border: 1px solid #c8d7f5;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .forward-panel h3 {
+            margin-bottom: 5px;
+            color: #0b3d91;
+        }
+
+        .forward-panel p {
+            color: #667085;
+            font-size: 12px;
+            margin-bottom: 15px;
+        }
+
+        .department-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .department-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px;
+            background: white;
+            border: 1px solid #d9e0ea;
+            border-radius: 9px;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .department-option:hover {
+            border-color: #0b3d91;
+            background: #f8fbff;
+        }
+
+        .department-option input {
+            width: 18px;
+            height: 18px;
+            accent-color: #0b3d91;
+        }
+
+        .department-info strong {
+            display: block;
+            font-size: 13px;
+        }
+
+        .department-info span {
+            display: block;
+            color: #667085;
+            font-size: 11px;
+            margin-top: 2px;
+        }
+
+        .forward-method {
+            margin-top: 15px;
+        }
+
+        .forward-method select {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #d9e0ea;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .confirmation-box {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #fff8e8;
+            border: 1px solid #f5d48a;
+            border-radius: 9px;
+        }
+
+        .confirmation-box strong {
+            color: #9a6700;
+        }
+
+        .confirmation-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .forward-button,
+        .confirm-button,
+        .cancel-button {
+            border: none;
+            border-radius: 8px;
+            padding: 12px 18px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .forward-button {
+            width: 100%;
+            margin-top: 15px;
+            background: #0b3d91;
+            color: white;
+        }
+
+        .confirm-button {
+            background: #198754;
+            color: white;
+            flex: 1;
+        }
+
+        .cancel-button {
+            background: #e5e7eb;
+            color: #374151;
+            flex: 1;
+        }
+
+        .forward-status {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 9px;
+            background: #dcfce7;
+            color: #166534;
+            font-weight: 700;
+        }
+
+        .alarm-note {
+            margin-top: 15px;
+            text-align: center;
+            color: #b42318;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* =====================================================
+           FINAL REPORT REVIEW WINDOW
+        ===================================================== */
+
+        .final-report-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 130000;
+            padding: 22px;
+            background: rgba(15, 23, 42, .82);
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        .final-report-modal-box {
+            width: min(1100px, 100%);
+            max-height: 94vh;
+            overflow-y: auto;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 30px 90px rgba(0,0,0,.35);
+            padding: 24px;
+        }
+
+        .final-report-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .final-report-kicker {
+            color: #15803d;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: .08em;
+        }
+
+        .final-report-modal-header h2 {
+            margin: 5px 0 4px;
+            color: #0b3d91;
+        }
+
+        .final-report-modal-header p {
+            margin: 0;
+            color: #667085;
+            font-size: 13px;
+        }
+
+        .final-report-close {
+            flex: 0 0 auto;
+            width: 42px;
+            height: 42px;
+            border: 0;
+            border-radius: 10px;
+            background: #f1f5f9;
+            color: #344054;
+            font-size: 28px;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .final-report-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 18px;
+            margin-top: 18px;
+        }
+
+        .final-report-card {
+            min-width: 0;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        .final-report-card-title {
+            color: #344054;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: .06em;
+            margin-bottom: 10px;
+        }
+
+        .final-report-document {
+            background: #fff;
+            border: 1px solid #d9e0ea;
+            border-radius: 10px;
+            padding: 16px;
+            color: #172033;
+            font-size: 13px;
+            line-height: 1.65;
+        }
+
+        .final-report-heading {
+            color: #0b3d91;
+            font-weight: 800;
+            margin: 12px 0 4px;
+        }
+
+        .final-report-heading:first-child { margin-top: 0; }
+        .final-report-line { margin: 3px 0; }
+        .final-report-spacer { height: 7px; }
+
+        .final-map-frame {
+            min-height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            border: 1px solid #d9e0ea;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .final-map-frame img {
+            width: 100%;
+            max-height: 520px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .final-map-caption {
+            margin-top: 9px;
+            color: #667085;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 760px) {
+            .alarm-report-grid { grid-template-columns: 1fr; }
+            .alarm-field.full { grid-column: auto; }
+            .critical-alarm-box { padding: 16px; width: 100%; }
+            #criticalAlarmOverlay { padding: 10px; }
+            #reporterMap { height: 260px; }
+            .final-report-modal { padding: 8px; }
+            .final-report-modal-box { padding: 14px; max-height: 96vh; border-radius: 14px; }
+            .final-report-grid { grid-template-columns: 1fr; }
+            .final-report-modal-header { gap: 8px; }
+        }
+
+        /* =====================================================
+           ADMIN AI SETTINGS
+        ===================================================== */
+
+        .admin-ai-settings {
+            margin: 22px 0;
+            background: #ffffff;
+            border: 1px solid #d9e0ea;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
+        }
+
+        .admin-ai-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .admin-ai-header h2 {
+            margin: 0 0 5px;
+            color: #172033;
+            font-size: 18px;
+        }
+
+        .admin-ai-header p {
+            margin: 0;
+            color: #667085;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .admin-ai-badge {
+            white-space: nowrap;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1d4ed8;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .admin-ai-form {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto auto;
+            gap: 10px;
+            align-items: end;
+        }
+
+        .admin-ai-field label {
+            display: block;
+            margin-bottom: 6px;
+            color: #344054;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .admin-ai-input-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 44px;
+            padding: 4px 8px 4px 12px;
+            border: 1px solid #d0d5dd;
+            border-radius: 10px;
+            background: #fff;
+        }
+
+        .admin-ai-input-wrap:focus-within {
+            border-color: #0b3d91;
+            box-shadow: 0 0 0 3px rgba(11, 61, 145, .1);
+        }
+
+        .admin-ai-input-wrap input {
+            width: 100%;
+            min-width: 0;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: #172033;
+            font-size: 13px;
+        }
+
+        .admin-ai-toggle {
+            border: 0;
+            background: transparent;
+            color: #475467;
+            cursor: pointer;
+            padding: 8px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .admin-ai-button {
+            min-height: 44px;
+            border: 0;
+            border-radius: 10px;
+            padding: 0 16px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 800;
+            transition: transform .15s ease, opacity .15s ease;
+        }
+
+        .admin-ai-button:active {
+            transform: scale(.98);
+        }
+
+        .admin-ai-save {
+            background: #0b3d91;
+            color: #fff;
+        }
+
+        .admin-ai-clear {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+
+        .admin-ai-status {
+            margin-top: 12px;
+            min-height: 18px;
+            color: #667085;
+            font-size: 11px;
+        }
+
+        .admin-ai-status.success {
+            color: #047857;
+        }
+
+        .admin-ai-status.error {
+            color: #b91c1c;
+        }
+
+        @media (max-width: 760px) {
+            .admin-ai-settings {
+                padding: 16px;
+                margin: 16px 0;
+            }
+
+            .admin-ai-header {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .admin-ai-form {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-ai-button {
+                width: 100%;
+            }
+        }
+    
+.report-edit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}.report-edit-grid label{display:grid;gap:6px;font-size:12px;font-weight:700;color:#475467}.report-edit-grid input,.report-edit-grid select,.report-edit-grid textarea{font:inherit;padding:10px;border:1px solid #d0d5dd;border-radius:8px}.report-edit-grid .edit-full{grid-column:1/-1}.department-option.selected{border:2px solid #0b3d91;background:#eaf1ff;box-shadow:0 0 0 2px rgba(11,61,145,.08)}
+@media(max-width:700px){.report-edit-grid{grid-template-columns:1fr}.report-edit-grid .edit-full{grid-column:auto}}
+
+/* GABAY MOBILE PILL/OBLONG FIX */
+@media (max-width: 768px) {
+  .navbar,
+  .nav-bar,
+  .navbar-container,
+  .header-container,
+  .nav-container {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Keep brand compact and prevent the logo/name from squashing */
+  .brand,
+  .logo,
+  .brand-link,
+  .logo-link,
+  .navbar-brand {
+    min-width: 0 !important;
+    max-width: calc(100% - 64px) !important;
+    flex: 1 1 auto !important;
+    overflow: hidden !important;
+  }
+
+  .brand img,
+  .logo img,
+  .brand-logo,
+  .navbar-brand img {
+    max-width: 42px !important;
+    width: auto !important;
+    height: auto !important;
+    flex-shrink: 0 !important;
+  }
+
+  .brand-text,
+  .logo-text,
+  .brand-name,
+  .navbar-brand span {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  /* Hamburger: compact rounded-square, not a stretched oblong */
+  .menu-toggle,
+  .hamburger,
+  .mobile-menu-toggle,
+  .nav-toggle,
+  #menuToggle,
+  #hamburger {
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: 0 0 44px !important;
+    aspect-ratio: 1 / 1 !important;
+    border-radius: 12px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+  }
+
+  .menu-toggle span,
+  .hamburger span,
+  .mobile-menu-toggle span,
+  .nav-toggle span,
+  #menuToggle span,
+  #hamburger span {
+    width: 20px !important;
+    max-width: 20px !important;
+    height: 2px !important;
+    flex: 0 0 auto !important;
+  }
+
+  /* Login/Register pills should fit without becoming stretched */
+  .login-btn,
+  .register-btn,
+  .nav-login,
+  .nav-register,
+  .btn-login,
+  .btn-register {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    flex: 0 1 auto !important;
+    white-space: nowrap !important;
+    border-radius: 10px !important;
+  }
+
+  /* Prevent generic buttons from becoming giant mobile pills */
+  button,
+  .btn,
+  .nav-link {
+    max-width: 100% !important;
+  }
+}
+
+</style>
+</head>
+
+<body class="government-page">
+<nav class="government-navbar">
+
+    <div class="government-logo">
+        <img class="government-logo-image" src="{{ url_for('static', filename='images/gabay-logo.png') }}" alt="GABAY logo">
+        <div>
+            <strong>GABAY</strong>
+            <small>Government Portal</small>
+        </div>
+    </div>
+
+    <button
+        type="button"
+        class="government-nav-hamburger"
+        id="governmentNavHamburger"
+        aria-label="Open government navigation"
+        aria-controls="governmentNavMenu"
+        aria-expanded="false"
+    ><span class="hamburger-line hamburger-line-1" aria-hidden="true"></span><span class="hamburger-line hamburger-line-2" aria-hidden="true"></span><span class="hamburger-line hamburger-line-3" aria-hidden="true"></span></button>
+
+    <div class="government-nav-menu" id="governmentNavMenu">
+    <div class="government-nav-links">
+
+        <a href="{{ url_for('government_dashboard') }}" class="{% if request.endpoint == 'government_dashboard' %}active{% endif %}">Home</a>
+        <a href="{{ url_for('government_dashboard') }}" class="{% if request.endpoint == 'government_dashboard' and not request.args.get('section') %}active{% endif %}">Dashboard</a>
+
+        <a href="{{ url_for('government_dashboard') }}#recentRequests">Requests</a>
+        <a href="{{ url_for('request_history') }}" class="{% if request.endpoint == 'request_history' %}active{% endif %}">Request History</a>
+
+    </div>
+
+    <div class="government-account">
+
+        <div class="government-user-info">
+            <strong>{{ full_name }}</strong>
+            <span>Government Personnel</span>
+        </div>
+
+        {% if profile_image %}
+
+            <img
+                src="{{ url_for('profile_image', filename=profile_image) }}"
+                alt="Profile"
+                class="government-profile"
+            >
+
+        {% else %}
+
+            <div class="government-profile-placeholder">
+                {{ full_name[0] }}
+            </div>
+
+        {% endif %}
+
+        <a
+            href="{{ url_for('logout') }}"
+            class="government-logout"
+        >
+            Logout
+        </a>
+
+    </div>
+    </div>
+
+</nav>
+
+<script>
+(function () {
+    const button = document.getElementById("governmentNavHamburger");
+    const menu = document.getElementById("governmentNavMenu");
+    if (!button || !menu) return;
+
+    function closeMenu() {
+        menu.classList.remove("is-open");
+        button.classList.remove("is-open");
+        button.setAttribute("aria-expanded", "false");
+        button.setAttribute("aria-label", "Open government navigation");
+    }
+
+    button.addEventListener("click", function () {
+        const open = menu.classList.toggle("is-open");
+        button.classList.toggle("is-open", open);
+        button.setAttribute("aria-expanded", String(open));
+        button.setAttribute("aria-label", open ? "Close government navigation" : "Open government navigation");
+    });
+
+    menu.querySelectorAll("a").forEach(function (link) {
+        link.addEventListener("click", closeMenu);
+    });
+
+    document.addEventListener("click", function (event) {
+        if (!menu.classList.contains("is-open")) return;
+        if (!menu.contains(event.target) && !button.contains(event.target)) closeMenu();
+    });
+
+    window.addEventListener("resize", function () {
+        if (window.innerWidth > 760) closeMenu();
+    });
+})();
+</script>
+<script>
+(function () {
+    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
+    document.documentElement.classList.add("government-motion-enabled");
+    const selectors = [
+        ".government-page-header", ".government-stat-card", ".government-card",
+        ".critical-alarm-box", ".alarm-report", ".request-card", ".government-table",
+        ".government-filters", ".report-details-card", ".report-edit-card",
+        ".department-option"
+    ];
+    const items = [];
+    selectors.forEach(function (selector) {
+        document.querySelectorAll(selector).forEach(function (el) {
+            el.classList.add("gov-reveal");
+            items.push(el);
+        });
+    });
+    if ("IntersectionObserver" in window) {
+        const observer = new IntersectionObserver(function (entries, obs) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("gov-visible");
+                    obs.unobserve(entry.target);
+                }
+            });
+        }, { threshold: .08, rootMargin: "0px 0px -30px 0px" });
+        items.forEach(function (el, i) {
+            el.style.setProperty("--gov-delay", Math.min((i % 5) * 70, 280) + "ms");
+            observer.observe(el);
+        });
+    } else {
+        items.forEach(function (el) { el.classList.add("gov-visible"); });
+    }
+})();
+</script>
+
+<main class="government-main">
+
+    <section class="government-page-header">
+
+        <div>
+
+            <span class="government-eyebrow">
+                GABAY GOVERNMENT PORTAL
+            </span>
+
+            <h1>
+                Government Dashboard
+            </h1>
+
+            <p>
+                Monitor incoming citizen requests,
+                review emergencies, and coordinate
+                government assistance.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    {% if role == "admin" %}
+    <section class="admin-ai-settings" aria-labelledby="adminAiSettingsTitle">
+
+        <div class="admin-ai-header">
+            <div>
+                <h2 id="adminAiSettingsTitle">Gemini AI Configuration</h2>
+                <p>Change the Gemini API key used by GABAY without rebuilding the app. The key is stored on the GABAY server and is never displayed in full.</p>
+            </div>
+            <span class="admin-ai-badge" id="geminiKeyBadge">Checking...</span>
+        </div>
+
+        <div class="admin-ai-form">
+            <div class="admin-ai-field">
+                <label for="geminiApiKeyInput">Gemini API Key</label>
+                <div class="admin-ai-input-wrap">
+                    <input
+                        id="geminiApiKeyInput"
+                        type="password"
+                        autocomplete="new-password"
+                        placeholder="Paste a new Gemini API key"
+                        spellcheck="false"
+                    >
+                    <button type="button" class="admin-ai-toggle" id="toggleGeminiKey" aria-label="Show API key">Show</button>
+                </div>
+            </div>
+
+            <button type="button" class="admin-ai-button admin-ai-save" id="saveGeminiKey">Save API Key</button>
+            <button type="button" class="admin-ai-button admin-ai-clear" id="clearGeminiKey">Remove Key</button>
+        </div>
+
+        <div class="admin-ai-status" id="geminiKeyStatus" role="status"></div>
+    </section>
+    {% endif %}
+
+    {% if role == "admin" %}
+    <section class="government-section admin-user-management">
+        <div class="government-section-header"><div><span class="government-section-label">ADMINISTRATION</span><h2>Registered People & Role Management</h2></div></div>
+        <p style="color:#667085;margin-bottom:14px;">Admins can review safe account information and change roles. Passwords and authentication secrets are never displayed.</p>
+        <div id="adminUsersTable" class="government-table-wrapper">Loading users...</div>
+    </section>
+    <script>
+    (async function(){const host=document.getElementById('adminUsersTable');try{const r=await fetch('/api/admin/users',{cache:'no-store'});const d=await r.json();if(!r.ok||!d.success)throw new Error(d.error||'Unable to load users');host.innerHTML='<table class="government-table"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Change role</th></tr></thead><tbody>'+d.users.map(u=>'<tr><td>'+escapeHtml(u.full_name||'')+'</td><td>'+escapeHtml(u.email||'')+'</td><td>'+escapeHtml(u.role||'')+'</td><td><select data-user="'+u.id+'"><option>citizen</option><option>government</option><option>gov_employee</option><option>government_employee</option><option>admin</option></select></td></tr>').join('')+'</tbody></table>';host.querySelectorAll('select[data-user]').forEach(select=>{select.value=d.users.find(u=>String(u.id)===select.dataset.user).role;select.addEventListener('change',async()=>{const rr=await fetch('/api/admin/users/'+select.dataset.user+'/role',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({role:select.value})});const dd=await rr.json();if(!rr.ok||!dd.success)alert(dd.error||'Role change failed')})})}catch(e){host.textContent=e.message}})();
+    </script>
+    {% endif %}
+
+
+    <!-- =====================================================
+         STATISTICS
+    ====================================================== -->
+
+    <section class="government-stat-grid">
+
+        <div class="government-stat-card">
+
+            <div class="stat-card-label">
+                Total Requests
+            </div>
+
+            <div class="stat-card-number">
+                {{ total_requests }}
+            </div>
+
+            <div class="stat-card-description">
+                All submitted requests
+            </div>
+
+        </div>
+
+
+        <div class="government-stat-card critical-stat">
+
+            <div class="stat-card-label">
+                Critical
+            </div>
+
+            <div class="stat-card-number">
+                {{ critical_requests }}
+            </div>
+
+            <div class="stat-card-description">
+                Requires immediate attention
+            </div>
+
+        </div>
+
+
+        <div class="government-stat-card high-stat">
+
+            <div class="stat-card-label">
+                High
+            </div>
+
+            <div class="stat-card-number">
+                {{ high_requests }}
+            </div>
+
+            <div class="stat-card-description">
+                Requires urgent response
+            </div>
+
+        </div>
+
+
+        <div class="government-stat-card pending-stat">
+
+            <div class="stat-card-label">
+                Pending
+            </div>
+
+            <div class="stat-card-number">
+                {{ pending_requests }}
+            </div>
+
+            <div class="stat-card-description">
+                Waiting for government action
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         CRITICAL REQUESTS
+    ====================================================== -->
+
+    <section class="government-section">
+
+        <div class="government-section-header">
+
+            <div>
+
+                <span class="government-section-label">
+                    PRIORITY ALERTS
+                </span>
+
+                <h2>
+                    Critical Requests
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        {% if critical_request_list %}
+
+            <div class="government-critical-list">
+
+                {% for item in critical_request_list %}
+
+                    <div class="government-critical-item">
+
+                        <div class="critical-indicator">
+                            !
+                        </div>
+
+                        <div class="critical-request-content">
+
+                            <div class="critical-request-top">
+
+                                <strong>
+                                    {{ item.category }}
+                                </strong>
+
+                                <span class="priority-critical">
+                                    Critical
+                                </span>
+
+                            </div>
+
+                            <p>
+                                {{ item.description }}
+                            </p>
+
+                            <div class="critical-request-meta">
+
+                                <span>
+                                    {{ item.ticket_number }}
+                                </span>
+
+                                <span>
+                                    {{ item.full_name }}
+                                </span>
+
+                                <span>
+                                    {{ item.created_at }}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <a
+                            href="{{ url_for(
+                                'request_info',
+                                request_id=item.id
+                            ) }}"
+                            class="government-action-button"
+                        >
+                            View
+                        </a>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="government-empty-state">
+
+                <strong>
+                    No critical requests
+                </strong>
+
+                <p>
+                    There are currently no requests
+                    classified as critical.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
+
+    <!-- =====================================================
+         RECENT REQUESTS
+    ====================================================== -->
+
+    <section class="government-section" id="recentRequests">
+
+        <div class="government-section-header">
+
+            <div>
+
+                <span class="government-section-label">
+                    LATEST ACTIVITY
+                </span>
+
+                <h2>
+                    Recent Requests
+                </h2>
+
+            </div>
+
+        </div>
+
+
+        {% if recent_requests %}
+
+            <div class="government-table-wrapper">
+
+                <table class="government-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Ticket</th>
+                            <th>Citizen</th>
+                            <th>Category</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Action</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for item in recent_requests %}
+
+                            <tr>
+
+                                <td>
+                                    <strong>
+                                        {{ item.ticket_number }}
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    {{ item.full_name }}
+                                </td>
+
+                                <td>
+                                    {{ item.category }}
+                                </td>
+
+                                <td>
+
+                                    {% if item.priority == "Critical" %}
+
+                                        <span class="priority-badge priority-critical">
+                                            Critical
+                                        </span>
+
+                                    {% elif item.priority == "High" %}
+
+                                        <span class="priority-badge priority-high">
+                                            High
+                                        </span>
+
+                                    {% elif item.priority == "Low" %}
+
+                                        <span class="priority-badge priority-low">
+                                            Low
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="priority-badge priority-moderate">
+                                            {{ item.priority }}
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+
+                                    <span class="status-badge">
+                                        {{ item.status }}
+                                    </span>
+
+                                </td>
+
+                                <td>
+                                    {{ item.created_at }}
+                                </td>
+
+                                <td>
+
+                                    <a
+                                        href="{{ url_for(
+                                            'request_info',
+                                            request_id=item.id
+                                        ) }}"
+                                        class="table-view-button"
+                                    >
+                                        View
+                                    </a>
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        {% else %}
+
+            <div class="government-empty-state">
+
+                <strong>
+                    No requests yet
+                </strong>
+
+                <p>
+                    Citizen requests will appear here.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </section>
+
+</main>
+
+
+<footer class="government-footer">
+
+    <strong>
+        GABAY
+    </strong>
+
+    <span>
+        Government Assistance, Basic-services
+        Action & Yield
+    </span>
+
+</footer>
+
+
+<!-- =====================================================
+     CRITICAL ALARM OVERLAY
+====================================================== -->
+
+<div id="criticalAlarmOverlay">
+
+    <div class="critical-alarm-box">
+
+        <div class="alarm-icon">
+            !
+        </div>
+
+        <h1 class="alarm-title">
+            CRITICAL EMERGENCY
+        </h1>
+
+        <p class="alarm-warning">
+            You have been assigned a critical emergency request.
+            This alarm cannot be dismissed until an official
+            action has been recorded.
+        </p>
+
+
+        <!-- REPORT -->
+
+        <div class="alarm-report">
+
+            <h3 style="margin-bottom:15px;">
+                Emergency Report
+            </h3>
+
+            <div
+                id="criticalAlarmDetails"
+                class="alarm-report-grid"
+            >
+                Loading emergency details...
+            </div>
+
+        </div>
+
+
+        <!-- AI WRITTEN REPORT -->
+
+        <div class="alarm-report">
+
+            <h3>
+                AI Written Department Report
+            </h3>
+
+            <p
+                style="
+                    color:#667085;
+                    font-size:12px;
+                    margin-top:4px;
+                "
+            >
+                This report will be submitted with the emergency
+                forwarding action.
+            </p>
+
+            <div id="aiEmergencyReport" class="ai-report-document">
+                Generating AI report...
+            </div>
+
+            <div class="report-preview-note">
+                <strong>Employee review:</strong> Read the complete report and verify the location/map before forwarding.
+                The alarm cannot be completed until the emergency has been officially forwarded.
+            </div>
+
+        </div>
+
+
+        <!-- HUMAN REVIEW / CORRECTION -->
+        <div class="alarm-report">
+            <h3>Review and Correct Report</h3>
+            <p style="color:#667085;font-size:12px;margin-top:4px;">AI output is a draft. Government personnel are responsible for reviewing factual details before forwarding.</p>
+            <div class="report-edit-grid">
+                <label>Title<input id="editReportTitle"></label>
+                <label>Report Type<input id="editReportType"></label>
+                <label>Location<input id="editReportLocation"></label>
+                <label>Population Affected<input id="editPopulation" type="number" min="0"></label>
+                <label>Households Affected<input id="editHouseholds" type="number" min="0"></label>
+                <label>Urgency<select id="editUrgency"><option>Low</option><option>Moderate</option><option>High</option><option>Critical</option></select></label>
+                <label>Power Outage Type<select id="editOutageType"><option value="">Not applicable</option><option>Total Power Outage</option><option>Partial Power Outage</option><option>Intermittent Power Outage</option><option>Low Voltage / Power Fluctuation</option><option>Planned / Scheduled Outage</option><option>Unplanned / Unexpected Outage</option><option>Unknown / Not Sure</option></select></label>
+                <label class="edit-full">Description<textarea id="editDescription" rows="5"></textarea></label>
+                <label class="edit-full">AI Written Report — editable<textarea id="editAIReport" rows="14"></textarea></label>
+            </div>
+            <button type="button" id="saveReportCorrections" class="forward-button">Save Report Corrections</button>
+            <span id="editReportStatus" class="forward-status"></span>
+        </div>
+
+
+        <!-- REPORTER FACE -->
+        <div class="alarm-report">
+            <h3>Reporter Face</h3>
+            <p style="color:#667085;font-size:12px;margin-top:4px;">The FACE VERIFICATION capture taken when the report was submitted is shown to authorized government personnel. This is the verification capture, not the reporter's profile photo.</p>
+            <div id="reporterFacePreview" style="min-height:120px;display:flex;align-items:center;gap:14px;"></div>
+        </div>
+
+        <!-- MAP -->
+
+        <div class="alarm-report">
+
+            <h3>
+                Reporter Location
+            </h3>
+
+            <p
+                style="
+                    color:#667085;
+                    font-size:12px;
+                    margin-top:4px;
+                "
+            >
+                Location provided by the citizen's report.
+            </p>
+
+            <div id="reporterMap"></div>
+
+            <div id="mapScreenshotPreview" class="map-screenshot-preview" style="display:none;">
+                <div style="font-size:11px;font-weight:800;color:#475467;margin-bottom:8px;">MAP SCREENSHOT THAT WILL BE ATTACHED</div>
+                <img id="mapScreenshotImage" alt="Emergency location map screenshot">
+            </div>
+
+        </div>
+
+
+        <!-- FORWARD -->
+
+        <div class="forward-panel">
+
+            <h3>
+                Forward This Report
+            </h3>
+
+            <p>
+                Select the exact government department responsible
+                for this emergency. The report will only be forwarded
+                after confirmation.
+            </p>
+
+
+            <div
+                id="departmentList"
+                class="department-list"
+            >
+                Loading departments...
+            </div>
+
+
+            <div class="forward-method">
+
+                <label>
+                    <strong>
+                        Forward through:
+                    </strong>
+                </label>
+
+                <select id="forwardMethod">
+
+                    <option value="">
+                        Select forwarding method
+                    </option>
+
+                    <option value="phone">
+                        Department Phone Number
+                    </option>
+
+                    <option value="email">
+                        Department Email Address
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <button
+                type="button"
+                id="forwardReportButton"
+                class="forward-button"
+            >
+                Forward This Report
+            </button>
+
+
+            <!-- CONFIRMATION -->
+
+            <div
+                id="confirmationBox"
+                class="confirmation-box"
+            >
+
+                <strong>
+                    Please verify the information.
+                </strong>
+
+                <p
+                    id="confirmationText"
+                    style="
+                        margin-top:6px;
+                        font-size:12px;
+                    "
+                ></p>
+
+                <p
+                    style="
+                        margin-top:8px;
+                        font-size:12px;
+                    "
+                >
+                    Are you sure this is the correct department
+                    and contact information?
+                </p>
+
+
+                <div class="confirmation-buttons">
+
+                    <button
+                        type="button"
+                        id="confirmForwardButton"
+                        class="confirm-button"
+                    >
+                        Yes, Forward Report
+                    </button>
+
+                    <button
+                        type="button"
+                        id="cancelForwardButton"
+                        class="cancel-button"
+                    >
+                        Cancel
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- SUCCESS -->
+
+            <div
+                id="forwardStatus"
+                class="forward-status"
+            ></div>
+
+        </div>
+
+
+        <div class="alarm-note">
+            The alarm will continue until the report has been
+            successfully forwarded and recorded.
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- FINAL FORWARDED REPORT -->
+<div id="finalReportModal" class="final-report-modal" role="dialog" aria-modal="true" aria-labelledby="finalReportTitle">
+    <div class="final-report-modal-box">
+        <div class="final-report-modal-header">
+            <div>
+                <div class="final-report-kicker">REPORT FORWARDED SUCCESSFULLY</div>
+                <h2 id="finalReportTitle">AI Emergency Report</h2>
+                <p>The submitted report is shown with the emergency-location map attachment.</p>
+            </div>
+            <button type="button" id="closeFinalReportButton" class="final-report-close" aria-label="Close final report">&times;</button>
+        </div>
+        <div class="final-report-grid">
+            <section class="final-report-card">
+                <div class="final-report-card-title">AI WRITTEN REPORT</div>
+                <div id="finalAIReport" class="final-report-document">Loading final report...</div>
+            </section>
+            <section class="final-report-card">
+                <div class="final-report-card-title">EMERGENCY LOCATION MAP</div>
+                <div class="final-map-frame">
+                    <img id="finalMapScreenshot" alt="Emergency location map screenshot with red alarm marker">
+                </div>
+                <div class="final-map-caption">Red alarm marker identifies the reported emergency location. The screenshot is captured from the zoomed-in map.</div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+
+<script>
+(function () {
+
+    "use strict";
+
+
+    /* =====================================================
+       SETTINGS
+    ===================================================== */
+
+    const CHECK_INTERVAL = 3000;
+
+    // Only employee roles are allowed to receive emergency alarms.
+    // Admins can manage GABAY/Gemini settings but never get paged.
+    const CURRENT_ROLE = {{ role|tojson }};
+    const CAN_RECEIVE_CRITICAL_ALARMS = [
+        "government",
+        "gov_employee",
+        "government_employee"
+    ].includes(CURRENT_ROLE);
+
+    let alarmAudioContext = null;
+    let alarmInterval = null;
+    let alarmRunning = false;
+
+    let currentRequest = null;
+
+    let map = null;
+    let mapMarker = null;
+    let mapScreenshotData = null;
+    let aiReportReady = false;
+
+
+    /* =====================================================
+       ELEMENTS
+    ===================================================== */
+
+    const overlay =
+        document.getElementById("criticalAlarmOverlay");
+
+    const details =
+        document.getElementById("criticalAlarmDetails");
+
+    const aiEmergencyReport =
+        document.getElementById("aiEmergencyReport");
+
+    const departmentList =
+        document.getElementById("departmentList");
+
+    const forwardMethod =
+        document.getElementById("forwardMethod");
+
+    const forwardButton =
+        document.getElementById("forwardReportButton");
+
+    const confirmationBox =
+        document.getElementById("confirmationBox");
+
+    const confirmationText =
+        document.getElementById("confirmationText");
+
+    const confirmForwardButton =
+        document.getElementById("confirmForwardButton");
+
+    const cancelForwardButton =
+        document.getElementById("cancelForwardButton");
+
+    const forwardStatus =
+        document.getElementById("forwardStatus");
+
+
+    /* =====================================================
+       SOUND
+    ===================================================== */
+
+    function playAlarmBeep() {
+
+        try {
+
+            if (!alarmAudioContext) {
+                alarmAudioContext = new (
+                    window.AudioContext ||
+                    window.webkitAudioContext
+                )();
+            }
+
+            if (alarmAudioContext.state === "suspended") {
+                alarmAudioContext.resume();
+            }
+
+            /*
+             * GABAY alert chime:
+             * A soft two-tone sine-wave chime is used instead of the
+             * previous loud square-wave beep. It remains noticeable
+             * without sounding like a continuous siren.
+             */
+            const now = alarmAudioContext.currentTime;
+            const master = alarmAudioContext.createGain();
+            master.gain.setValueAtTime(0.0001, now);
+            master.gain.exponentialRampToValueAtTime(0.095, now + 0.035);
+            master.gain.exponentialRampToValueAtTime(0.0001, now + 0.72);
+            master.connect(alarmAudioContext.destination);
+
+            const first = alarmAudioContext.createOscillator();
+            const second = alarmAudioContext.createOscillator();
+
+            first.type = "sine";
+            second.type = "sine";
+
+            first.frequency.setValueAtTime(659.25, now); // E5
+            first.frequency.exponentialRampToValueAtTime(698.46, now + 0.24);
+
+            second.frequency.setValueAtTime(783.99, now + 0.19); // G5
+            second.frequency.exponentialRampToValueAtTime(880.00, now + 0.48);
+
+            const firstGain = alarmAudioContext.createGain();
+            const secondGain = alarmAudioContext.createGain();
+
+            firstGain.gain.setValueAtTime(0.0001, now);
+            firstGain.gain.exponentialRampToValueAtTime(0.65, now + 0.035);
+            firstGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.34);
+
+            secondGain.gain.setValueAtTime(0.0001, now + 0.18);
+            secondGain.gain.exponentialRampToValueAtTime(0.52, now + 0.225);
+            secondGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.72);
+
+            first.connect(firstGain);
+            second.connect(secondGain);
+            firstGain.connect(master);
+            secondGain.connect(master);
+
+            first.start(now);
+            second.start(now + 0.18);
+            first.stop(now + 0.36);
+            second.stop(now + 0.74);
+
+        } catch (error) {
+            console.error("Alarm sound error:", error);
+        }
+
+    }
+
+    /* =====================================================
+       ESCAPE HTML
+    ===================================================== */
+
+    function escapeHtml(value) {
+
+        if (
+            value === null ||
+            value === undefined
+        ) {
+            return "";
+        }
+
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+    }
+
+
+    /* =====================================================
+       SHOW REPORT
+    ===================================================== */
+
+    function displayRequest(request) {
+
+        currentRequest = request;
+
+
+        details.innerHTML = `
+
+            <div class="alarm-field">
+
+                <span class="alarm-field-label">
+                    Ticket Number
+                </span>
+
+                <span class="alarm-field-value">
+                    ${escapeHtml(request.ticket_number)}
+                </span>
+
+            </div>
+
+
+            <div class="alarm-field">
+
+                <span class="alarm-field-label">
+                    Citizen
+                </span>
+
+                <span class="alarm-field-value">
+                    ${escapeHtml(request.full_name)}
+                </span>
+
+            </div>
+
+
+            <div class="alarm-field">
+
+                <span class="alarm-field-label">
+                    Category
+                </span>
+
+                <span class="alarm-field-value">
+                    ${escapeHtml(request.category)}
+                </span>
+
+            </div>
+
+
+            <div class="alarm-field">
+
+                <span class="alarm-field-label">
+                    Priority
+                </span>
+
+                <span
+                    class="alarm-field-value"
+                    style="color:#dc2626;"
+                >
+                    CRITICAL
+                </span>
+
+            </div>
+
+
+            <div class="alarm-field full">
+
+                <span class="alarm-field-label">
+                    Description
+                </span>
+
+                <span class="alarm-field-value">
+                    ${escapeHtml(request.description)}
+                </span>
+
+            </div>
+
+
+            <div class="alarm-field full">
+
+                <span class="alarm-field-label">
+                    Location
+                </span>
+
+                <span class="alarm-field-value">
+                    ${escapeHtml(request.address || "GPS location provided")}
+                </span>
+
+            </div>
+
+
+            <div class="alarm-field">
+
+                <span class="alarm-field-label">
+                    Date Submitted
+                </span>
+
+                <span class="alarm-field-value">
+                    ${escapeHtml(request.created_at)}
+                </span>
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* =====================================================
+       MAP
+    ===================================================== */
+
+    function displayMap(request) {
+        const address = String(request.address || '').trim();
+        const mapEl = document.getElementById("reporterMap");
+        if (!address) {
+            mapEl.innerHTML = `<div style="padding:30px;text-align:center;color:#667085">No specific address was provided with this emergency report.</div>`;
+            return;
+        }
+        mapEl.innerHTML = `<div style="padding:18px;text-align:center;color:#475467">Locating the reported address…<br><strong>${escapeHtml(address)}</strong></div>`;
+        fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=' + encodeURIComponent(address), {headers:{'Accept':'application/json'}})
+            .then(r => r.json())
+            .then(items => {
+                if (!items.length) {
+                    mapEl.innerHTML = `<div style="padding:30px;text-align:center;color:#667085"><strong>Reported address</strong><br>${escapeHtml(address)}<br><small>Map location could not be resolved.</small></div>`;
+                    return;
+                }
+                const lat = Number(items[0].lat), lng = Number(items[0].lon);
+                if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+                if (!map) {
+                    map = L.map("reporterMap");
+                    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:19, crossOrigin:true, attribution:"&copy; OpenStreetMap contributors"}).addTo(map);
+                }
+                map.setView([lat,lng],17);
+                if (mapMarker) map.removeLayer(mapMarker);
+                mapMarker = L.marker([lat,lng]).addTo(map).bindPopup(`<strong>Emergency address</strong><br>${escapeHtml(address)}`).openPopup();
+                setTimeout(() => map.invalidateSize(), 300);
+            })
+            .catch(() => { mapEl.innerHTML = `<div style="padding:30px;text-align:center;color:#667085"><strong>Reported address</strong><br>${escapeHtml(address)}<br><small>Address map unavailable right now.</small></div>`; });
+    }
+
+    /* =====================================================
+       LOAD DEPARTMENTS
+    ===================================================== */
+
+    async function loadDepartments(selectedDepartment = "") {
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/government/departments",
+                    {
+                        cache: "no-store"
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (
+                !data.success ||
+                !Array.isArray(data.departments)
+            ) {
+
+                departmentList.innerHTML =
+                    "Unable to load departments.";
+
+                return;
+
+            }
+
+
+            departmentList.innerHTML = "";
+
+
+            data.departments.forEach(
+                function (department) {
+
+                    const label =
+                        document.createElement("label");
+
+                    label.className =
+                        "department-option";
+
+
+                    label.innerHTML = `
+
+                        <input
+                            type="radio"
+                            name="department"
+                            value="${escapeHtml(department.name)}"
+                            data-name="${escapeHtml(department.name)}"
+                            data-phone="${escapeHtml(department.phone || '')}"
+                            data-email="${escapeHtml(department.email || '')}"
+                        >
+
+                        <div class="department-info">
+
+                            <strong>
+                                ${escapeHtml(department.name)}
+                            </strong>
+
+                            <span>
+                                Phone:
+                                ${escapeHtml(department.phone || "Not available")}
+                            </span>
+
+                            <span>
+                                Email:
+                                ${escapeHtml(department.email || "Not available")}
+                            </span>
+
+                        </div>
+
+                    `;
+
+
+                    departmentList.appendChild(label);
+                    const radio = label.querySelector('input[name="department"]');
+                    if (selectedDepartment && department.name === selectedDepartment) { radio.checked = true; label.classList.add("selected"); }
+                    radio.addEventListener("change", async function () {
+                        departmentList.querySelectorAll(".department-option").forEach(el => el.classList.remove("selected"));
+                        label.classList.add("selected");
+                        if (currentRequest && currentRequest.id) {
+                            try {
+                                await fetch("/api/government/request/" + encodeURIComponent(currentRequest.id) + "/department", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({department: radio.value})});
+                            } catch (e) { console.error("Department save error", e); }
+                        }
+                    });
+
+                }
+            );
+
+        }
+        catch (error) {
+
+            console.error(
+                "Department loading error:",
+                error
+            );
+
+            departmentList.innerHTML =
+                "Unable to load departments.";
+
+        }
+
+    }
+
+
+    function populateEditForm(request) {
+        const set=(id,val)=>{const el=document.getElementById(id);if(el)el.value=val==null?"":val;};
+        set("editReportTitle", request.report_title || request.category || "Emergency Report");
+        set("editReportType", request.category || "Emergency");
+        set("editReportLocation", request.address || "");
+        set("editPopulation", request.population_affected || "");
+        set("editHouseholds", request.households_affected || "");
+        set("editUrgency", request.urgency || request.priority || "High");
+        set("editOutageType", request.outage_type || "");
+        set("editDescription", request.description || "");
+        set("editAIReport", request.ai_report || "");
+        const face = document.getElementById("reporterFacePreview");
+        if (face) {
+            face.innerHTML = request.verification_image
+                ? `<img src="/uploads/verification/${encodeURIComponent(request.verification_image)}" alt="Face verification capture" style="width:150px;height:150px;border-radius:16px;object-fit:cover;border:3px solid #d0d5dd">`
+                : `<div style="padding:24px;border-radius:12px;background:#f2f4f7;color:#667085">No face verification capture is available for this report.</div>`;
+        }
+    }
+
+    document.getElementById("saveReportCorrections")?.addEventListener("click", async function(){
+        if(!currentRequest) return;
+        const payload={report_title:document.getElementById("editReportTitle").value,category:document.getElementById("editReportType").value,address:document.getElementById("editReportLocation").value,population_affected:document.getElementById("editPopulation").value ? Number(document.getElementById("editPopulation").value):null,households_affected:document.getElementById("editHouseholds").value ? Number(document.getElementById("editHouseholds").value):null,urgency:document.getElementById("editUrgency").value,outage_type:document.getElementById("editOutageType").value,description:document.getElementById("editDescription").value,ai_report:document.getElementById("editAIReport").value};
+        const status=document.getElementById("editReportStatus");
+        try { const r=await fetch("/api/government/request/"+encodeURIComponent(currentRequest.id)+"/edit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}); const d=await r.json(); if(!r.ok||!d.success) throw new Error(d.error||"Unable to save"); Object.assign(currentRequest,payload); status.textContent="Corrections saved to the database."; status.style.display="inline-block"; } catch(e){ status.textContent=e.message; status.style.display="inline-block"; }
+    });
+
+    /* =====================================================
+       LOAD AI WRITTEN REPORT
+    ===================================================== */
+
+    async function loadAIReport(request) {
+
+        aiReportReady = false;
+        aiEmergencyReport.textContent = "Generating AI emergency report...";
+
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+                const response = await fetch(
+                    "/api/government/ai-report/" + encodeURIComponent(request.id),
+                    { cache: "no-store", credentials: "same-origin" }
+                );
+
+                const raw = await response.text();
+                let data = {};
+                try { data = raw ? JSON.parse(raw) : {}; } catch (_) {}
+
+                if (response.ok && data.success && data.report) {
+                    request.ai_report = data.report;
+                    aiReportReady = true;
+                    renderAIReport(data.report);
+
+                    // If the employee already selected a department/method,
+                    // make the confirmation path usable immediately.
+                    forwardButton.disabled = false;
+                    return true;
+                }
+
+                if (attempt < 3) {
+                    aiEmergencyReport.textContent = "AI report is still being prepared. Retrying...";
+                    await new Promise(function(resolve) { setTimeout(resolve, 1200 * attempt); });
+                    continue;
+                }
+
+                throw new Error(data.error || data.message || "AI report generation failed.");
+            } catch (error) {
+                console.error("AI report error:", error);
+
+                if (attempt < 3) {
+                    await new Promise(function(resolve) { setTimeout(resolve, 1200 * attempt); });
+                    continue;
+                }
+
+                aiReportReady = false;
+                aiEmergencyReport.textContent = "Unable to generate the AI report. Please wait a moment and try again.";
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    /* =====================================================
+       FORMAT AI REPORT FOR EMPLOYEE REVIEW
+    ===================================================== */
+
+    function renderAIReport(report) {
+
+        if (!report) {
+            aiEmergencyReport.textContent = "No AI report generated.";
+            return;
+        }
+
+        const lines = String(report).split(/\r?\n/);
+
+        aiEmergencyReport.innerHTML = lines.map(function (line) {
+
+            const clean = line.trim();
+
+            if (!clean) return "<div style=\"height:7px\"></div>";
+
+            if (/^(incident|emergency|priority|department|recommended|situation|impact|action|assessment|location|summary|reason|estimated|essential)/i.test(clean) || /^#{1,3}\s/.test(clean)) {
+                return `<div class="report-heading">${escapeHtml(clean.replace(/^#{1,3}\s*/, ""))}</div>`;
+            }
+
+            return `<div class="report-line">${escapeHtml(clean).replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")}</div>`;
+
+        }).join("");
+    }
+
+
+    /* =====================================================
+       CAPTURE MAP
+    ===================================================== */
+
+    async function captureMapScreenshot() {
+
+        const mapElement = document.getElementById("reporterMap");
+
+        if (!mapElement) return null;
+
+        if (typeof html2canvas !== "function") {
+            console.error("html2canvas is not available.");
+            return null;
+        }
+
+        try {
+            if (map) {
+                map.invalidateSize(false);
+            }
+
+            // Give Leaflet a moment to finish drawing the zoomed-in marker
+            // and its latest tiles before taking the final attachment.
+            await new Promise(function(resolve) { setTimeout(resolve, 900); });
+
+            const canvas = await html2canvas(mapElement, {
+                useCORS: true,
+                allowTaint: false,
+                backgroundColor: "#ffffff",
+                scale: Math.min(window.devicePixelRatio || 1, 2),
+                imageTimeout: 10000,
+                logging: false
+            });
+
+            const dataUrl = canvas.toDataURL("image/png");
+
+            if (!dataUrl || dataUrl === "data:," || dataUrl.length < 1000) {
+                throw new Error("The map screenshot was empty.");
+            }
+
+            mapScreenshotData = dataUrl;
+
+            // Keep this hidden during the alarm. The screenshot is only
+            // shown in the final submitted-report window.
+            const preview = document.getElementById("mapScreenshotPreview");
+            const image = document.getElementById("mapScreenshotImage");
+            if (preview && image) {
+                image.src = dataUrl;
+                preview.style.display = "none";
+            }
+
+            return dataUrl;
+        } catch (error) {
+            console.error("Map screenshot error:", error);
+            return null;
+        }
+    }
+
+    /* =====================================================
+       START ALARM
+    ===================================================== */
+
+    function startAlarm(request) {
+
+        if (alarmRunning) {
+            return;
+        }
+
+
+        alarmRunning = true;
+
+        // A new Critical emergency takes priority over the previous
+        // forwarded-report window. Never hide a newly received alarm
+        // behind the final report modal.
+        const existingFinalModal =
+            document.getElementById("finalReportModal");
+
+        if (existingFinalModal) {
+            existingFinalModal.style.display = "none";
+            document.body.style.overflow = "";
+        }
+
+        displayRequest(request);
+
+        displayMap(request);
+
+        mapScreenshotData = null;
+        aiReportReady = false;
+
+        loadDepartments(request.assigned_department || "");
+        populateEditForm(request);
+
+        // AI generation and map capture run independently so a slow map
+        // tile or screenshot never prevents the emergency report from opening.
+        loadAIReport(request);
+        captureMapScreenshot();
+
+
+        overlay.style.display =
+            "flex";
+
+
+        playAlarmBeep();
+
+
+        alarmInterval =
+            setInterval(
+                playAlarmBeep,
+                2600
+            );
+
+
+        if (
+            "Notification" in window &&
+            Notification.permission === "granted"
+        ) {
+
+            try {
+
+                new Notification(
+                    "GABAY CRITICAL EMERGENCY",
+                    {
+                        body:
+                            "Assigned critical request: " +
+                            request.ticket_number,
+                        requireInteraction: true
+                    }
+                );
+
+            }
+            catch (error) {
+
+                console.error(
+                    error
+                );
+
+            }
+
+        }
+
+    }
+
+
+    /* =====================================================
+       CHECK ASSIGNED CRITICAL REQUEST
+    ===================================================== */
+
+    async function checkCriticalRequest() {
+
+        // Hard client-side guard: administrators are never paged.
+        if (!CAN_RECEIVE_CRITICAL_ALARMS) {
+            return;
+        }
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/government/critical-alerts",
+                    {
+                        method: "GET",
+                        cache: "no-store"
+                    }
+                );
+
+
+            if (!response.ok) {
+                return;
+            }
+
+
+            const data =
+                await response.json();
+
+
+            /*
+             IMPORTANT:
+
+             The SERVER decides which employee owns
+             the emergency.
+
+             Therefore multiple employees cannot
+             claim the same critical report.
+            */
+
+            if (
+                data.success &&
+                data.alert &&
+                data.alert.assigned_to_me
+            ) {
+
+                if (
+                    !alarmRunning ||
+                    !currentRequest ||
+                    String(currentRequest.id) !==
+                    String(data.alert.id)
+                ) {
+
+                    startAlarm(
+                        data.alert
+                    );
+
+                }
+
+            }
+
+        }
+        catch (error) {
+
+            console.error(
+                "Critical monitoring error:",
+                error
+            );
+
+        }
+
+    }
+
+
+    /* =====================================================
+       FORWARD BUTTON
+    ===================================================== */
+
+    forwardButton.addEventListener(
+        "click",
+        function () {
+
+            const selected =
+                document.querySelector(
+                    'input[name="department"]:checked'
+                );
+
+
+            if (!selected) {
+
+                alert(
+                    "Please select the correct department first."
+                );
+
+                return;
+
+            }
+
+
+            const method =
+                forwardMethod.value;
+
+
+            if (!method) {
+
+                alert(
+                    "Please select whether the report will be forwarded through phone or email."
+                );
+
+                return;
+
+            }
+
+
+            const departmentName =
+                selected.dataset.name;
+
+
+            const contact =
+                method === "phone"
+                    ? selected.dataset.phone
+                    : selected.dataset.email;
+
+
+            if (!contact) {
+
+                alert(
+                    "The selected department does not have a contact for this forwarding method."
+                );
+
+                return;
+
+            }
+
+
+            confirmationText.innerHTML = `
+
+                You selected:
+
+                <strong>
+                    ${escapeHtml(departmentName)}
+                </strong>
+
+                <br>
+
+                Forward through:
+
+                <strong>
+                    ${method === "phone" ? "Phone Number" : "Email Address"}
+                </strong>
+
+                <br>
+
+                Contact:
+
+                <strong>
+                    ${escapeHtml(contact)}
+                </strong>
+
+            `;
+
+
+            confirmationBox.style.display =
+                "block";
+
+
+            forwardButton.style.display =
+                "none";
+
+        }
+    );
+
+
+    /* =====================================================
+       CANCEL CONFIRMATION
+    ===================================================== */
+
+    cancelForwardButton.addEventListener(
+        "click",
+        function () {
+
+            confirmationBox.style.display =
+                "none";
+
+            forwardButton.style.display =
+                "block";
+
+        }
+    );
+
+
+    /* =====================================================
+       CONFIRM FORWARD
+    ===================================================== */
+
+    confirmForwardButton.addEventListener(
+        "click",
+        async function () {
+
+            if (!currentRequest) {
+                return;
+            }
+
+
+            const selected =
+                document.querySelector(
+                    'input[name="department"]:checked'
+                );
+
+
+            if (!selected) {
+                return;
+            }
+
+            /* Keep the employee on the complete report preview. */
+            if (!aiReportReady) {
+                alert("Please wait for the AI emergency report to finish generating before forwarding.");
+                return;
+            }
+
+            const method =
+                forwardMethod.value;
+
+
+            confirmForwardButton.disabled =
+                true;
+
+            // Capture the final zoomed-in red-marker map immediately
+            // before submission so the attachment matches what the
+            // employee reviewed.
+            const finalMapCapture =
+                await captureMapScreenshot();
+
+            if (finalMapCapture) {
+                mapScreenshotData = finalMapCapture;
+            }
+
+            if (!mapScreenshotData) {
+                const proceedWithoutMap = window.confirm(
+                    "The emergency map screenshot could not be captured. Forward the report without the map attachment?"
+                );
+                if (!proceedWithoutMap) {
+                    confirmForwardButton.disabled = false;
+                    return;
+                }
+            }
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/api/government/forward-request/" + encodeURIComponent(currentRequest.id),
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+
+                                department:
+                                    selected.value,
+
+                                method:
+                                    method,
+
+                                map_screenshot:
+                                    mapScreenshotData || "",
+
+                                ai_report:
+                                    currentRequest.ai_report || ""
+
+                            })
+
+                        }
+                    );
+
+
+                const rawResponse = await response.text();
+                let data = {};
+                try {
+                    data = rawResponse ? JSON.parse(rawResponse) : {};
+                } catch (parseError) {
+                    console.error("Forward response was not valid JSON:", rawResponse);
+                    data = { message: "The server returned an invalid response." };
+                }
+
+
+                if (!response.ok || !data.success) {
+
+                    alert(
+                        data.message ||
+                        "The report could not be forwarded."
+                    );
+
+                    confirmForwardButton.disabled =
+                        false;
+
+                    return;
+
+                }
+
+
+                /*
+                 SERVER HAS NOW RECORDED
+                 THE ACTION.
+                */
+
+
+                forwardStatus.innerHTML = `
+
+                    This report has been forwarded to
+                    <strong>
+                        ${escapeHtml(data.department)}
+                    </strong>.
+
+                    <br>
+
+                    Contact method:
+                    ${escapeHtml(data.method)}
+
+                    <br>
+
+                    This emergency has been
+                    officially acknowledged.
+
+                `;
+
+
+                forwardStatus.style.display =
+                    "block";
+
+
+                confirmationBox.style.display =
+                    "none";
+
+
+                if (data.ai_report) {
+                    currentRequest.ai_report = data.ai_report;
+                    renderAIReport(data.ai_report);
+                }
+
+
+                forwardStatus.innerHTML += `
+
+                    <br><br>
+                    <strong>AI report prepared and submitted.</strong>
+
+                    <br>
+
+                    Map screenshot attached:
+                    ${data.map_screenshot ? "Yes" : "No"}
+
+                `;
+
+
+                /*
+                 STOP ONLY AFTER SERVER CONFIRMS
+                 THE FORWARD ACTION.
+                */
+
+                stopAlarm();
+
+
+                /*
+                 Show the final submitted package only after the
+                 server confirms that the forward action succeeded.
+                */
+                showFinalReportWindow({
+                    ai_report: data.ai_report || (currentRequest && currentRequest.ai_report) || "",
+                    map_screenshot: data.map_screenshot || mapScreenshotData || ""
+                });
+
+            }
+            catch (error) {
+
+                console.error(
+                    "Forward error:",
+                    error
+                );
+
+                alert(
+                    "A connection error occurred."
+                );
+
+                confirmForwardButton.disabled =
+                    false;
+
+            }
+
+        }
+    );
+
+
+    /* =====================================================
+       STOP ALARM
+       ===================================================== */
+
+    function stopAlarm() {
+
+        /*
+         DO NOT allow the employee to stop
+         the alarm manually.
+
+         It only stops after the server confirms
+         a forwarding/action event.
+        */
+
+        if (alarmInterval) {
+
+            clearInterval(
+                alarmInterval
+            );
+
+            alarmInterval = null;
+
+        }
+
+
+        alarmRunning = false;
+
+
+        overlay.style.display =
+            "none";
+
+    }
+
+
+    /* =====================================================
+       FINAL FORWARDED REPORT MODAL
+    ===================================================== */
+
+    const finalReportModal = document.getElementById("finalReportModal");
+    const finalAIReport = document.getElementById("finalAIReport");
+    const finalMapScreenshot = document.getElementById("finalMapScreenshot");
+    const closeFinalReportButton = document.getElementById("closeFinalReportButton");
+
+    function showFinalReportWindow(data) {
+        if (!finalReportModal) return;
+        renderFinalAIReport(data.ai_report || (currentRequest && currentRequest.ai_report) || "No AI report available.");
+        if (finalMapScreenshot) {
+            finalMapScreenshot.src = data.map_screenshot || mapScreenshotData || "";
+            finalMapScreenshot.style.display = finalMapScreenshot.src ? "block" : "none";
+        }
+        finalReportModal.style.display = "flex"; document.body.style.overflow = "hidden";
+    }
+
+    function renderFinalAIReport(report) {
+        if (!finalAIReport) return;
+        finalAIReport.innerHTML = String(report || "").split(/\r?\n/).map(function(line) {
+            const clean = line.trim();
+            if (!clean) return '<div class="final-report-spacer"></div>';
+            if (/^(incident|emergency|priority|department|recommended|situation|impact|action|assessment|location|summary|reason|estimated|essential)/i.test(clean) || /^#{1,3}\s/.test(clean)) {
+                return `<div class="final-report-heading">${escapeHtml(clean.replace(/^#{1,3}\s*/, ""))}</div>`;
+            }
+            return `<div class="final-report-line">${escapeHtml(clean).replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")}</div>`;
+        }).join("");
+    }
+
+    if (closeFinalReportButton) {
+        closeFinalReportButton.addEventListener("click", function() {
+            finalReportModal.style.display = "none";
+            document.body.style.overflow = "";
+
+            // Refresh the government dashboard after the employee
+            // finishes reviewing the submitted package.
+            window.location.reload();
+        });
+    }
+
+    /* =====================================================
+       ADMIN GEMINI API KEY SETTINGS
+    ===================================================== */
+
+    const geminiKeyInput = document.getElementById("geminiApiKeyInput");
+    const saveGeminiKeyButton = document.getElementById("saveGeminiKey");
+    const clearGeminiKeyButton = document.getElementById("clearGeminiKey");
+    const toggleGeminiKeyButton = document.getElementById("toggleGeminiKey");
+    const geminiKeyStatus = document.getElementById("geminiKeyStatus");
+    const geminiKeyBadge = document.getElementById("geminiKeyBadge");
+
+    function setGeminiKeyStatus(message, type) {
+        if (!geminiKeyStatus) return;
+        geminiKeyStatus.textContent = message || "";
+        geminiKeyStatus.className = "admin-ai-status" + (type ? " " + type : "");
+    }
+
+    async function loadGeminiKeyStatus() {
+        if (!geminiKeyBadge) return;
+
+        try {
+            const response = await fetch("/api/admin/gemini-settings", {
+                credentials: "same-origin"
+            });
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || "Unable to load Gemini settings.");
+            }
+
+            geminiKeyBadge.textContent = data.configured
+                ? "Configured " + data.masked_key
+                : "Not configured";
+        } catch (error) {
+            geminiKeyBadge.textContent = "Unavailable";
+            setGeminiKeyStatus(error.message, "error");
+        }
+    }
+
+    if (toggleGeminiKeyButton && geminiKeyInput) {
+        toggleGeminiKeyButton.addEventListener("click", function () {
+            const showing = geminiKeyInput.type === "text";
+            geminiKeyInput.type = showing ? "password" : "text";
+            toggleGeminiKeyButton.textContent = showing ? "Show" : "Hide";
+            toggleGeminiKeyButton.setAttribute("aria-label", showing ? "Show API key" : "Hide API key");
+        });
+    }
+
+    if (saveGeminiKeyButton && geminiKeyInput) {
+        saveGeminiKeyButton.addEventListener("click", async function () {
+            const apiKey = geminiKeyInput.value.trim();
+
+            if (!apiKey) {
+                setGeminiKeyStatus("Enter a Gemini API key first.", "error");
+                geminiKeyInput.focus();
+                return;
+            }
+
+            saveGeminiKeyButton.disabled = true;
+            setGeminiKeyStatus("Saving and applying the new Gemini key...", "");
+
+            try {
+                const response = await fetch("/api/admin/gemini-settings", {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ api_key: apiKey })
+                });
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || "Unable to update the Gemini API key.");
+                }
+
+                geminiKeyInput.value = "";
+                setGeminiKeyStatus("Gemini API key updated successfully. New AI requests will use it immediately.", "success");
+                if (geminiKeyBadge) geminiKeyBadge.textContent = "Configured " + data.masked_key;
+            } catch (error) {
+                setGeminiKeyStatus(error.message, "error");
+            } finally {
+                saveGeminiKeyButton.disabled = false;
+            }
+        });
+    }
+
+    if (clearGeminiKeyButton) {
+        clearGeminiKeyButton.addEventListener("click", async function () {
+            if (!confirm("Remove the stored Gemini API key? AI features will use fallback behavior until a new key is added.")) {
+                return;
+            }
+
+            clearGeminiKeyButton.disabled = true;
+            setGeminiKeyStatus("Removing Gemini API key...", "");
+
+            try {
+                const response = await fetch("/api/admin/gemini-settings/clear", {
+                    method: "POST",
+                    credentials: "same-origin"
+                });
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || "Unable to remove the Gemini API key.");
+                }
+
+                setGeminiKeyStatus("Gemini API key removed. AI fallback behavior is now active.", "success");
+                if (geminiKeyBadge) geminiKeyBadge.textContent = "Not configured";
+            } catch (error) {
+                setGeminiKeyStatus(error.message, "error");
+            } finally {
+                clearGeminiKeyButton.disabled = false;
+            }
+        });
+    }
+
+    loadGeminiKeyStatus();
+
+    /* =====================================================
+       NOTIFICATION PERMISSION
+    ===================================================== */
+
+    if (
+        "Notification" in window &&
+        Notification.permission === "default"
+    ) {
+
+        Notification.requestPermission();
+
+    }
+
+
+    /* =====================================================
+       INITIALIZATION
+    ===================================================== */
+
+    loadDepartments();
+
+    // Start emergency monitoring only for employee accounts.
+    if (CAN_RECEIVE_CRITICAL_ALARMS) {
+        checkCriticalRequest();
+    }
+
+
+    /*
+     Automatically check the server every 3 seconds.
+
+     This detects a newly submitted critical request
+     without manually refreshing the page.
+    */
+
+    if (CAN_RECEIVE_CRITICAL_ALARMS) {
+        setInterval(
+            checkCriticalRequest,
+            CHECK_INTERVAL
+        );
+    }
+
+
+    /*
+     Automatically reload the dashboard itself
+     every 15 seconds so statistics and request
+     lists update too.
+    */
+
+    setInterval(
+        function () {
+
+            if (!alarmRunning) {
+                window.location.reload();
+            }
+
+        },
+        15000
+    );
+
+
+})();
+</script>
+</body>
+</html>

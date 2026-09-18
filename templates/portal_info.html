@@ -1,0 +1,4 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="portal-page"><div class="portal-card"><p class="dashboard-label">GABAY</p><h1>{{ heading }}</h1><p class="portal-lead">{{ text }}</p><div class="info-card-grid">{% for title, desc in cards %}<article class="info-card"><h2>{{ title }}</h2><p>{{ desc }}</p>{% if title in ['Medical','Fire','Safety','Flood','Electricity','Infrastructure','Government','Food','Transportation'] %}<a class="btn primary" href="{{ url_for('request_assistance', category=title) }}">Request assistance</a>{% endif %}</article>{% endfor %}</div></div></main>
+{% endblock %}

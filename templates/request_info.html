@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Request Information | GABAY</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+</head>
+
+<body>
+<main class="request-info-page">
+
+        <section class="request-info-card">
+
+            <h1>
+                Request Information
+            </h1>
+
+            <p>
+                Your request has been analyzed by GABAY.
+            </p>
+
+
+            <!-- ================================================= -->
+            <!-- TICKET -->
+            <!-- ================================================= -->
+
+            <div class="request-info-row">
+
+                <span>
+                    GABAY Ticket Number
+                </span>
+
+                <strong>
+                    {{ request_data["ticket_number"] }}
+                </strong>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- ASSISTANCE TYPE -->
+            <!-- ================================================= -->
+
+            <div class="request-info-row">
+
+                <span>
+                    Assistance Type
+                </span>
+
+                <strong>
+                    {{ request_data["category"] }}
+                </strong>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- DESCRIPTION -->
+            <!-- ================================================= -->
+
+            <div class="request-info-row">
+
+                <span>
+                    Description
+                </span>
+
+                <strong>
+                    {{ request_data["description"] }}
+                </strong>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- PRIORITY -->
+            <!-- ================================================= -->
+
+            <div class="request-info-row">
+
+                <span>
+                    Severity
+                </span>
+
+                <strong
+                    class="priority-{{ request_data['priority']|lower }}"
+                >
+                    {{ request_data["priority"] }}
+                </strong>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- STATUS -->
+            <!-- ================================================= -->
+
+            <div class="request-info-row">
+
+                <span>
+                    Status
+                </span>
+
+                <strong>
+                    {{ request_data["status"] }}
+                </strong>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- DATE -->
+            <!-- ================================================= -->
+
+            {% if session.get("role") in ["government", "gov_employee", "government_employee", "admin"] %}
+            <div class="request-info-row"><span>Citizen</span><strong>{{ request_data["full_name"] if request_data["full_name"] is defined else "Citizen" }}</strong></div>
+            <div class="request-info-row"><span>Location</span><strong>{{ request_data["address"] }}</strong></div>
+            <div class="request-info-row"><span>Population Affected</span><strong>{{ request_data["population_affected"] or "Not provided" }}</strong></div>
+            <div class="request-info-row"><span>Households Affected</span><strong>{{ request_data["households_affected"] or "Not provided" }}</strong></div>
+            <div class="request-info-row"><span>Urgency</span><strong>{{ request_data["urgency"] or request_data["priority"] }}</strong></div>
+            <div class="request-info-row"><span>Power Outage Type</span><strong>{{ request_data["outage_type"] or "Not applicable" }}</strong></div>
+            <div class="request-info-row"><span>Department</span><strong>{{ request_data["assigned_department"] or "Not selected" }}</strong></div>
+            <div class="request-info-row"><span>Report Review</span><strong>AI output is editable before forwarding.</strong></div>
+            <div class="request-info-row" style="display:block"><label for="govStatus"><strong>Update Status</strong></label><select id="govStatus" style="width:100%;padding:10px;margin-top:8px"><option>Pending</option><option>Under Review</option><option>In Progress</option><option>Action Taken</option><option>Resolved</option></select><button id="saveGovStatus" class="back-button" style="margin-top:10px;border:0">Save Status</button><span id="govStatusMsg"></span></div>
+            {% endif %}
+
+            <div class="request-info-row">
+
+                <span>
+                    Submitted
+                </span>
+
+                <strong>
+                    {{ request_data["created_at"] }}
+                </strong>
+
+            </div>
+
+
+            <a
+                href="{{ url_for('dashboard') }}"
+                class="back-button"
+            >
+                Back to Dashboard
+            </a>
+
+        </section>
+
+    {% if session.get("role") in ["government", "gov_employee", "government_employee"] %}<script>const statusEl=document.getElementById('govStatus');if(statusEl){statusEl.value={{ request_data["status"]|tojson }};document.getElementById('saveGovStatus').onclick=async()=>{const r=await fetch('/api/government/request/{{ request_data["id"] }}/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:statusEl.value})});const d=await r.json();document.getElementById('govStatusMsg').textContent=d.success?' Saved.':' '+(d.error||'Unable to save.')}}}</script>{% endif %}
+
+</main>
+</body>
+
+</html>

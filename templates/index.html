@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="hero">
+
+    <div class="hero-content">
+
+        <p class="subtitle">GOVERNMENT ASSISTANCE PLATFORM</p>
+
+        <h1>
+            Government help,
+            <span>made simpler.</span>
+        </h1>
+
+        <p>
+            GABAY helps citizens submit assistance requests
+            while government personnel review, assign, and
+            take action on every case.
+        </p>
+
+        <div class="buttons">
+            <a href="/register" class="btn primary">Get Started</a>
+            <a href="/login" class="btn secondary">Login</a>
+            <a href="{{ url_for('public_emergency') }}" class="btn secondary">Emergency Assistance</a>
+        </div>
+
+    </div>
+
+</section>
+
+<!-- Additional homepage hero sections: the original hero above is intentionally unchanged. -->
+<section class="home-hero home-hero-light">
+    <div class="home-hero-inner">
+        <div class="home-hero-copy">
+            <span class="home-kicker">ONE PLATFORM. MANY WAYS TO HELP.</span>
+            <h2>Connect with the right government assistance, faster.</h2>
+            <p>GABAY brings requests, emergency reporting, status tracking, notifications, and helpful guidance together in one clear citizen experience.</p>
+            <div class="home-feature-row">
+                <div><strong>01</strong><span>Choose a service</span></div>
+                <div><strong>02</strong><span>Submit your request</span></div>
+                <div><strong>03</strong><span>Track government action</span></div>
+            </div>
+        </div>
+        <div class="home-hero-panel">
+            <div class="hero-panel-glow"></div>
+            <div class="hero-panel-card">
+                <span class="panel-badge">GABAY ASSISTANCE</span>
+                <h3>From concern to response.</h3>
+                <p>Your request stays organized from submission through government action.</p>
+                <div class="panel-status"><span></span> Request received</div>
+                <div class="panel-status"><span></span> Under review</div>
+                <div class="panel-status active"><span></span> Government action</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="home-hero home-hero-dark">
+    <div class="home-hero-inner home-hero-split">
+        <div class="home-hero-stat-card">
+            <div class="stat-orbit"></div>
+            <strong>24/7</strong>
+            <span>Access to the GABAY platform</span>
+        </div>
+        <div class="home-hero-copy">
+            <span class="home-kicker">BUILT FOR CITIZENS AND GOVERNMENT</span>
+            <h2>Clearer information. Better coordination. Faster action.</h2>
+            <p>Citizens can submit and follow requests, while authorized government personnel can review information, coordinate departments, and update case progress.</p>
+            <a href="{{ url_for('services_page') }}" class="home-outline-btn">Explore GABAY Services</a>
+        </div>
+    </div>
+</section>
+
+<section class="home-hero home-hero-cta">
+    <div class="home-cta-inner">
+        <span class="home-kicker">GABAY INNOVATORS</span>
+        <h2>Government assistance should feel accessible.</h2>
+        <p>Start with GABAY and discover a simpler way to request assistance, report urgent concerns, and stay informed.</p>
+        <div class="buttons">
+            <a href="/register" class="btn primary">Create an Account</a>
+            <a href="{{ url_for('public_emergency') }}" class="btn secondary">Emergency Report</a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

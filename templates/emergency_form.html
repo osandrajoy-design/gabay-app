@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="portal-page emergency-page">
+    <div class="portal-card emergency-report-card">
+        <a class="back-button" href="{{ url_for('public_emergency') }}">← Back to Emergency Categories</a>
+        <p class="dashboard-label">EMERGENCY REPORT</p>
+        <h1>{{ category }}</h1>
+        <p class="portal-lead">{{ category_description }}</p>
+
+        <form id="publicEmergencyForm" class="emergency-form">
+            <input type="hidden" id="emergencyCategory" value="{{ category }}">
+
+            <label>Description
+                <textarea id="emergencyDescription" rows="6" required placeholder="Describe what is happening, who is affected, and any immediate danger."></textarea>
+            </label>
+
+            <div class="form-row">
+                <div class="urgency-system-card" aria-live="polite">
+                    <span class="urgency-system-label">SYSTEM-ASSIGNED URGENCY</span>
+                    <strong>High</strong>
+                    <small>Urgency is assigned by GABAY. Public reporters cannot change it. Authorized government personnel can review it.</small>
+                </div>
+                <label>Location / Address
+                    <textarea id="emergencyAddress" rows="3" required placeholder="Enter or confirm the emergency location."></textarea>
+                </label>
+            </div>
+
+            <input type="hidden" id="emergencyLatitude" required>
+            <input type="hidden" id="emergencyLongitude" required>
+            <button type="button" id="useEmergencyLocation" class="btn secondary">Use My Current Location & Find Address</button>
+            <small class="location-status">GABAY uses your GPS only to resolve the specific emergency address. Government staff see the address, not your latitude/longitude.</small>
+
+            <div class="face-verification-panel" style="margin-top:18px;padding:18px;border:1px solid #d0d5dd;border-radius:14px;background:#f8fafc;">
+                <h3 style="margin-top:0">Enhanced Face Verification</h3>
+                <p>Use the camera to capture the face verification image for this emergency report. Center your face, keep your eyes visible, and look directly at the camera.</p>
+                <video id="verificationCamera" autoplay muted playsinline style="width:100%;max-width:420px;border-radius:14px;background:#111827;display:none"></video>
+                <canvas id="verificationCanvas" width="720" height="540" style="display:none"></canvas>
+                <img id="verificationPreview" alt="Face verification preview" style="width:100%;max-width:420px;border-radius:14px;display:none">
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+                    <button type="button" id="startVerification" class="btn secondary">Start Camera</button>
+                    <button type="button" id="captureVerification" class="btn primary" disabled>Capture Face Verification</button>
+                    <button type="button" id="retakeVerification" class="btn secondary" style="display:none">Retake</button>
+                </div>
+                <input id="emergencyVerification" type="hidden" required>
+                <small>Verification is strengthened by requiring an in-camera capture and a valid, sufficiently large image. The system does not claim biometric identity matching unless a dedicated biometric service is configured.</small>
+            </div>
+
+            <p id="emergencyStatus" class="location-status" role="status"></p>
+            <button class="btn primary" type="submit">Submit Emergency Report</button>
+        </form>
+
+        <div id="emergencyResult" class="portal-result" hidden></div>
+    </div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+let verificationStream = null;
+
+$('useEmergencyLocation').addEventListener('click', () => {
+    if (!navigator.geolocation) { $('emergencyStatus').textContent = 'Location is not supported by this browser.'; return; }
+    $('emergencyStatus').textContent = 'Detecting your location and resolving the specific address…';
+    navigator.geolocation.getCurrentPosition(async position => {
+        $('emergencyLatitude').value = position.coords.latitude;
+        $('emergencyLongitude').value = position.coords.longitude;
+        try {
+            const r = await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1&lat=' + encodeURIComponent(position.coords.latitude) + '&lon=' + encodeURIComponent(position.coords.longitude), {headers:{'Accept':'application/json'}});
+            const d = await r.json();
+            if (d.display_name) $('emergencyAddress').value = d.display_name;
+            $('emergencyStatus').textContent = d.display_name ? 'Specific address found. Please confirm it before submitting.' : 'Location found. Please enter/confirm the specific address.';
+        } catch (_) { $('emergencyStatus').textContent = 'GPS detected. Please enter or confirm the specific address.'; }
+    }, () => $('emergencyStatus').textContent = 'Location permission was denied or unavailable. Please enter the specific address manually.');
+});
+
+$('startVerification').addEventListener('click', async () => {
+    try {
+        verificationStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user', width:{ideal:720}, height:{ideal:540}}, audio:false});
+        $('verificationCamera').srcObject = verificationStream;
+        $('verificationCamera').style.display = 'block';
+        $('verificationPreview').style.display = 'none';
+        $('captureVerification').disabled = false;
+        $('emergencyStatus').textContent = 'Camera ready. Center your face and capture when ready.';
+    } catch (_) { $('emergencyStatus').textContent = 'Camera access is required for enhanced face verification. Please allow camera access and try again.'; }
+});
+
+$('captureVerification').addEventListener('click', () => {
+    const video = $('verificationCamera'), canvas = $('verificationCanvas');
+    if (!video.videoWidth || !video.videoHeight) { $('emergencyStatus').textContent = 'Camera is still starting. Please wait a moment.'; return; }
+    canvas.width = Math.min(video.videoWidth, 1280); canvas.height = Math.round(canvas.width * video.videoHeight / video.videoWidth);
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+    const data = canvas.toDataURL('image/jpeg', 0.92);
+    $('emergencyVerification').value = data;
+    $('verificationPreview').src = data; $('verificationPreview').style.display = 'block';
+    $('verificationCamera').style.display = 'none'; $('retakeVerification').style.display = 'inline-flex';
+    if (verificationStream) { verificationStream.getTracks().forEach(t => t.stop()); verificationStream = null; }
+    $('emergencyStatus').textContent = 'Face verification captured. Review the image before submitting.';
+});
+
+$('retakeVerification').addEventListener('click', () => { $('emergencyVerification').value = ''; $('verificationPreview').style.display='none'; $('retakeVerification').style.display='none'; $('startVerification').click(); });
+
+$('publicEmergencyForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    if (!$('emergencyVerification').value) { $('emergencyStatus').textContent = 'Complete the camera face verification before submitting.'; return; }
+    if (!$('emergencyLatitude').value || !$('emergencyLongitude').value) { $('emergencyStatus').textContent = 'Use Current Location or provide a specific address and location first.'; return; }
+    if (!$('emergencyAddress').value.trim()) { $('emergencyStatus').textContent = 'A specific emergency address is required.'; return; }
+    $('emergencyStatus').textContent = 'Submitting emergency report…';
+    try {
+        const response = await fetch('{{ url_for("submit_public_emergency") }}', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({category:$('emergencyCategory').value,description:$('emergencyDescription').value,address:$('emergencyAddress').value,latitude:$('emergencyLatitude').value,longitude:$('emergencyLongitude').value,verification_image:$('emergencyVerification').value})});
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.error || 'Unable to submit the emergency report.');
+        $('emergencyResult').hidden=false; $('emergencyResult').innerHTML='<strong>Emergency report submitted.</strong><br>Ticket: '+data.ticket_number+'<br>The emergency alert remains active for government response.';
+        $('emergencyStatus').textContent=''; $('publicEmergencyForm').reset(); $('verificationPreview').style.display='none';
+    } catch (error) { $('emergencyStatus').textContent=error.message; }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+.admin-hero-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end}.admin-history-button{display:inline-flex;align-items:center;justify-content:center;padding:11px 15px;border-radius:10px;background:#0b3d91;color:#fff;text-decoration:none;font-weight:700;font-size:13px}.admin-history-button:hover{background:#083276}
+@media(max-width:760px){.admin-hero-actions{width:100%;justify-content:stretch}.admin-history-button{flex:1}}
+</style>
+<main class="admin-shell">
+  <section class="admin-hero">
+    <div>
+      <span class="admin-kicker">GABAY ADMINISTRATOR</span>
+      <h1>System Command Center</h1>
+      <p>Monitor platform activity, manage account roles, and review reports from one secure dashboard.</p>
+    </div>
+    <div class="admin-hero-actions">
+      <a class="admin-history-button" href="{{ url_for('request_history') }}">View Request History</a>
+      <div class="admin-hero-badge">
+        <span class="admin-badge-dot"></span>
+        <div>
+          <strong>Admin Access</strong>
+          <small>{{ full_name }}</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="admin-stat-grid">
+    <article class="admin-stat"><span>Registered People</span><strong>{{ users_total }}</strong><small>{{ citizens_total }} citizens</small></article>
+    <article class="admin-stat"><span>Government Personnel</span><strong>{{ government_total }}</strong><small>{{ admins_total }} administrator{{ '' if admins_total == 1 else 's' }}</small></article>
+    <article class="admin-stat"><span>Total Reports</span><strong>{{ total_reports }}</strong><small>{{ emergency_reports }} emergency report{{ '' if emergency_reports == 1 else 's' }}</small></article>
+    <article class="admin-stat"><span>Active Reports</span><strong>{{ active_reports }}</strong><small>{{ pending_reports }} pending</small></article>
+  </section>
+
+  <section class="admin-grid">
+    <div class="admin-panel admin-users-panel">
+      <div class="panel-heading">
+        <div><span class="admin-kicker">ROLE MANAGEMENT</span><h2>Registered people</h2></div>
+        <button class="admin-refresh" type="button" onclick="loadUsers()">Refresh</button>
+      </div>
+      <div class="admin-search"><input id="userSearch" type="search" placeholder="Search name or email..." oninput="filterUsers()"></div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Person</th><th>Email</th><th>Role</th><th>Change role</th></tr></thead>
+          <tbody id="usersTable">
+          {% for user in users %}
+            <tr data-search="{{ (user.full_name ~ ' ' ~ user.email)|lower }}">
+              <td><strong>{{ user.full_name }}</strong></td>
+              <td>{{ user.email }}</td>
+              <td><span class="role-pill role-{{ user.role }}">{{ user.role|replace('_',' ')|title }}</span></td>
+              <td>
+                <select class="role-select" data-user-id="{{ user.id }}" data-original="{{ user.role }}" onchange="changeRole(this)">
+                  {% for option in ['citizen','government','admin'] %}
+                    <option value="{{ option }}" {% if user.role == option %}selected{% endif %}>{{ option|replace('_',' ')|title }}</option>
+                  {% endfor %}
+                </select>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p id="roleMessage" class="admin-message" aria-live="polite"></p>
+    </div>
+
+    <div class="admin-panel">
+      <div class="panel-heading">
+        <div><span class="admin-kicker">REPORT MONITOR</span><h2>Recent reports</h2></div>
+        <span class="admin-safe-note">Alarm excluded</span>
+      </div>
+      <div class="admin-report-list">
+        {% for report in recent_reports %}
+          <a class="admin-report" href="{{ url_for('government_request_detail', request_id=report.id) }}">
+            <div class="report-icon">↗</div>
+            <div class="report-main">
+              <strong>{{ report.ticket_number }}</strong>
+              <span>{{ report.category }} · {{ report.full_name or 'Unknown citizen' }}</span>
+              <small>{{ report.created_at }}</small>
+            </div>
+            <div class="report-side">
+              <span class="status-pill">{{ report.status }}</span>
+              <small>{{ report.priority }}</small>
+            </div>
+          </a>
+        {% else %}
+          <div class="admin-empty">No reports have been submitted yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="admin-grid admin-bottom-grid">
+    <div class="admin-panel">
+      <div class="panel-heading"><div><span class="admin-kicker">DEPARTMENTS</span><h2>Report distribution</h2></div></div>
+      {% if departments %}
+        <div class="department-bars">
+          {% set max_department = departments[0].total %}
+          {% for department in departments %}
+            <div class="department-bar-row">
+              <div><span>{{ department.assigned_department }}</span><strong>{{ department.total }}</strong></div>
+              <div class="bar-track"><span style="width: {{ ((department.total / max_department) * 100)|round(0) }}%"></span></div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="admin-empty">Department distribution will appear after reports are assigned.</div>
+      {% endif %}
+    </div>
+
+    <div class="admin-panel admin-control-panel">
+      <span class="admin-kicker">ADMIN CONTROLS</span>
+      <h2>Keep the platform organized</h2>
+      <p>Administrators can change account roles and monitor active reports. Completed or cancelled requests are kept out of the active dashboard.</p>
+      <div class="admin-control-list">
+        <div><span>✓</span><strong>Role management</strong></div>
+        <div><span>✓</span><strong>Report monitoring</strong></div>
+        <div><span>✓</span><strong>No emergency alarm</strong></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+async function changeRole(select) {
+  const userId = select.dataset.userId;
+  const previous = select.dataset.original;
+  const role = select.value;
+  const message = document.getElementById("roleMessage");
+  select.disabled = true;
+  message.textContent = "Saving role...";
+  message.className = "admin-message";
+
+  try {
+    const response = await fetch(`/api/admin/users/${userId}/role`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({role})
+    });
+    const data = await response.json();
+    if (!response.ok || !data.success) throw new Error(data.error || "Could not update the role.");
+    select.dataset.original = role;
+    message.textContent = "Role updated successfully.";
+    message.className = "admin-message success";
+  } catch (error) {
+    select.value = previous;
+    message.textContent = error.message;
+    message.className = "admin-message error";
+  } finally {
+    select.disabled = false;
+  }
+}
+
+function filterUsers() {
+  const query = document.getElementById("userSearch").value.toLowerCase().trim();
+  document.querySelectorAll("#usersTable tr").forEach(row => {
+    row.style.display = !query || row.dataset.search.includes(query) ? "" : "none";
+  });
+}
+
+async function loadUsers() {
+  window.location.reload();
+}
+</script>
+{% endblock %}

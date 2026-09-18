@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-container">
+  <div class="auth-card role-auth-card">
+    <div class="role-auth-badge admin-badge">ADMINISTRATOR</div>
+    <h1>Administrator Login</h1>
+    <p>Sign in to manage GABAY accounts, reports, and system settings.</p>
+    {% if error %}<div class="form-error" role="alert">{{ error }}</div>{% endif %}
+    <form method="POST" action="{{ url_for('admin_login') }}" autocomplete="on">
+      <label for="admin-email">Administrator Email</label>
+      <input id="admin-email" type="email" name="email" autocomplete="username" required>
+      <label for="admin-password">Password</label>
+      <input id="admin-password" type="password" name="password" autocomplete="current-password" required>
+      <button type="submit">Sign in as Administrator</button>
+    </form>
+    <div class="role-login-links"><a href="{{ url_for('login') }}">Citizen Login</a><a href="{{ url_for('government_login') }}">Government Login</a></div>
+  </div>
+</div>
+{% endblock %}

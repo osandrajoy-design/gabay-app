@@ -1,0 +1,870 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="success-page">
+
+    <div class="success-card">
+
+        <!-- Success Icon -->
+        <div class="success-icon">
+
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+
+                <circle
+                    cx="12"
+                    cy="12"
+                    r="9"
+                ></circle>
+
+                <path
+                    d="M8 12l2.5 2.5L16 9"
+                ></path>
+
+            </svg>
+
+        </div>
+
+
+        <!-- Title -->
+        <p class="success-label">
+            REQUEST SUBMITTED
+        </p>
+
+        <h1>
+            Your request has been received.
+        </h1>
+
+        <p class="success-description">
+
+            Your request has been successfully submitted to
+            GABAY. Government personnel will review the request
+            and take the appropriate action.
+
+        </p>
+
+
+        <!-- Ticket Number -->
+        <div class="ticket-box">
+
+            <span class="ticket-label">
+                GABAY TICKET NUMBER
+            </span>
+
+            <strong class="ticket-number">
+                {{ ticket_number }}
+            </strong>
+
+            <span class="ticket-note">
+                Keep this number for tracking your request.
+            </span>
+
+        </div>
+
+
+        <!-- Request Information -->
+        <div class="success-details">
+
+            <div class="detail-item">
+
+                <span>
+                    Assistance Type
+                </span>
+
+                <strong>
+                    {{ category }}
+                </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+                <span>
+                    Priority
+                </span>
+
+                <strong
+                    class="
+                        priority-badge
+                        {% if priority == 'Critical' %}
+                            priority-critical
+                        {% elif priority == 'High' %}
+                            priority-high
+                        {% elif priority == 'Moderate' %}
+                            priority-moderate
+                        {% else %}
+                            priority-low
+                        {% endif %}
+                    "
+                >
+                    {{ priority }}
+                </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+                <span>
+                    Status
+                </span>
+
+                <strong class="status-badge">
+                    Pending
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- Information -->
+        <div class="success-info">
+
+            <svg viewBox="0 0 24 24">
+
+                <circle
+                    cx="12"
+                    cy="12"
+                    r="9"
+                ></circle>
+
+                <path
+                    d="M12 11v5"
+                ></path>
+
+                <circle
+                    cx="12"
+                    cy="8"
+                    r=".7"
+                    fill="currentColor"
+                    stroke="none"
+                ></circle>
+
+            </svg>
+
+
+            <p>
+
+                GABAY does not automatically approve requests.
+                Your request will be reviewed by the appropriate
+                government personnel before action is taken.
+
+            </p>
+
+        </div>
+
+
+        <!-- Buttons -->
+        <div class="success-actions">
+
+            <a
+                href="{{ url_for('dashboard') }}"
+                class="success-primary-button"
+            >
+
+                Back to Dashboard
+
+                <svg viewBox="0 0 24 24">
+
+                    <path d="M5 12h14"></path>
+
+                    <path d="M13 6l6 6-6 6"></path>
+
+                </svg>
+
+            </a>
+
+
+            <a
+                href="{{ url_for('dashboard') }}"
+                class="success-secondary-button"
+            >
+
+                View My Requests
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<style>
+
+/* =========================================================
+   REQUEST SUCCESS PAGE
+========================================================= */
+
+.success-page {
+
+    min-height: calc(100vh - 80px);
+
+    background: #f8fafc;
+
+    padding: 70px 20px 90px;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: flex-start;
+
+}
+
+
+.success-card {
+
+    width: 100%;
+
+    max-width: 720px;
+
+    background: #ffffff;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 16px;
+
+    padding: 45px;
+
+    text-align: center;
+
+    box-shadow:
+        0 8px 30px
+        rgba(15, 23, 42, 0.06);
+
+}
+
+
+/* =========================================================
+   SUCCESS ICON
+========================================================= */
+
+.success-icon {
+
+    width: 72px;
+
+    height: 72px;
+
+    margin: 0 auto 22px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #dcfce7;
+
+    color: #15803d;
+
+}
+
+
+.success-icon svg {
+
+    width: 38px;
+
+    height: 38px;
+
+    fill: none;
+
+    stroke: currentColor;
+
+    stroke-width: 1.8;
+
+    stroke-linecap: round;
+
+    stroke-linejoin: round;
+
+}
+
+
+/* =========================================================
+   TITLE
+========================================================= */
+
+.success-label {
+
+    margin: 0 0 8px;
+
+    color: #0b3d91;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    letter-spacing: 1.2px;
+
+}
+
+
+.success-card h1 {
+
+    margin: 0;
+
+    color: #111827;
+
+    font-size: 30px;
+
+    font-weight: 600;
+
+    line-height: 1.3;
+
+}
+
+
+.success-description {
+
+    max-width: 570px;
+
+    margin: 15px auto 30px;
+
+    color: #6b7280;
+
+    font-size: 14px;
+
+    line-height: 1.7;
+
+}
+
+
+/* =========================================================
+   TICKET
+========================================================= */
+
+.ticket-box {
+
+    padding: 25px 20px;
+
+    margin-bottom: 25px;
+
+    background: #f8fafc;
+
+    border: 1px dashed #cbd5e1;
+
+    border-radius: 12px;
+
+}
+
+
+.ticket-label {
+
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: #6b7280;
+
+    font-size: 11px;
+
+    font-weight: 600;
+
+    letter-spacing: 1px;
+
+}
+
+
+.ticket-number {
+
+    display: block;
+
+    color: #0b3d91;
+
+    font-size: 24px;
+
+    font-weight: 700;
+
+    letter-spacing: 1px;
+
+    word-break: break-word;
+
+}
+
+
+.ticket-note {
+
+    display: block;
+
+    margin-top: 7px;
+
+    color: #9ca3af;
+
+    font-size: 11px;
+
+}
+
+
+/* =========================================================
+   DETAILS
+========================================================= */
+
+.success-details {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    border-top: 1px solid #e5e7eb;
+
+    border-bottom: 1px solid #e5e7eb;
+
+    margin-bottom: 22px;
+
+}
+
+
+.detail-item {
+
+    padding: 18px 10px;
+
+}
+
+
+.detail-item + .detail-item {
+
+    border-left: 1px solid #e5e7eb;
+
+}
+
+
+.detail-item span {
+
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: #9ca3af;
+
+    font-size: 11px;
+
+}
+
+
+.detail-item strong {
+
+    color: #374151;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+}
+
+
+/* =========================================================
+   PRIORITY
+========================================================= */
+
+.priority-badge {
+
+    display: inline-block;
+
+    padding: 4px 9px;
+
+    border-radius: 20px;
+
+    font-size: 11px !important;
+
+}
+
+
+.priority-critical {
+
+    background: #fee2e2;
+
+    color: #b91c1c !important;
+
+}
+
+
+.priority-high {
+
+    background: #ffedd5;
+
+    color: #c2410c !important;
+
+}
+
+
+.priority-moderate {
+
+    background: #fef3c7;
+
+    color: #a16207 !important;
+
+}
+
+
+.priority-low {
+
+    background: #dcfce7;
+
+    color: #15803d !important;
+
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.status-badge {
+
+    display: inline-block;
+
+    padding: 4px 9px;
+
+    border-radius: 20px;
+
+    background: #e0e7ff;
+
+    color: #3730a3 !important;
+
+    font-size: 11px !important;
+
+}
+
+
+/* =========================================================
+   INFORMATION
+========================================================= */
+
+.success-info {
+
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 10px;
+
+    padding: 14px 16px;
+
+    margin-bottom: 28px;
+
+    text-align: left;
+
+    background: #f8fafc;
+
+    border-radius: 8px;
+
+}
+
+
+.success-info svg {
+
+    width: 18px;
+
+    height: 18px;
+
+    min-width: 18px;
+
+    margin-top: 2px;
+
+    fill: none;
+
+    stroke: #64748b;
+
+    stroke-width: 1.7;
+
+}
+
+
+.success-info p {
+
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 11px;
+
+    line-height: 1.6;
+
+}
+
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+.success-actions {
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 12px;
+
+}
+
+
+.success-primary-button,
+
+.success-secondary-button {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    padding: 12px 18px;
+
+    border-radius: 8px;
+
+    text-decoration: none;
+
+    font-family: "Poppins", sans-serif;
+
+    font-size: 13px;
+
+    font-weight: 500;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+
+}
+
+
+.success-primary-button {
+
+    background: #0b3d91;
+
+    color: #ffffff;
+
+}
+
+
+.success-primary-button:hover {
+
+    background: #092f70;
+
+    transform: translateY(-1px);
+
+}
+
+
+.success-primary-button svg {
+
+    width: 17px;
+
+    height: 17px;
+
+    fill: none;
+
+    stroke: currentColor;
+
+    stroke-width: 1.8;
+
+    stroke-linecap: round;
+
+    stroke-linejoin: round;
+
+}
+
+
+.success-secondary-button {
+
+    background: #ffffff;
+
+    color: #374151;
+
+    border: 1px solid #d1d5db;
+
+}
+
+
+.success-secondary-button:hover {
+
+    background: #f9fafb;
+
+    transform: translateY(-1px);
+
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 650px) {
+
+    .success-page {
+
+        padding: 40px 15px 60px;
+
+    }
+
+
+    .success-card {
+
+        padding: 30px 20px;
+
+    }
+
+
+    .success-card h1 {
+
+        font-size: 24px;
+
+    }
+
+
+    .ticket-number {
+
+        font-size: 19px;
+
+    }
+
+
+    .success-details {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .detail-item + .detail-item {
+
+        border-left: none;
+
+        border-top: 1px solid #e5e7eb;
+
+    }
+
+
+    .success-actions {
+
+        flex-direction: column;
+
+    }
+
+
+    .success-primary-button,
+
+    .success-secondary-button {
+
+        width: 100%;
+
+        box-sizing: border-box;
+
+    }
+
+}
+
+
+/* GABAY MOBILE PILL/OBLONG FIX */
+@media (max-width: 768px) {
+  .navbar,
+  .nav-bar,
+  .navbar-container,
+  .header-container,
+  .nav-container {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Keep brand compact and prevent the logo/name from squashing */
+  .brand,
+  .logo,
+  .brand-link,
+  .logo-link,
+  .navbar-brand {
+    min-width: 0 !important;
+    max-width: calc(100% - 64px) !important;
+    flex: 1 1 auto !important;
+    overflow: hidden !important;
+  }
+
+  .brand img,
+  .logo img,
+  .brand-logo,
+  .navbar-brand img {
+    max-width: 42px !important;
+    width: auto !important;
+    height: auto !important;
+    flex-shrink: 0 !important;
+  }
+
+  .brand-text,
+  .logo-text,
+  .brand-name,
+  .navbar-brand span {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  /* Hamburger: compact rounded-square, not a stretched oblong */
+  .menu-toggle,
+  .hamburger,
+  .mobile-menu-toggle,
+  .nav-toggle,
+  #menuToggle,
+  #hamburger {
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: 0 0 44px !important;
+    aspect-ratio: 1 / 1 !important;
+    border-radius: 12px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+  }
+
+  .menu-toggle span,
+  .hamburger span,
+  .mobile-menu-toggle span,
+  .nav-toggle span,
+  #menuToggle span,
+  #hamburger span {
+    width: 20px !important;
+    max-width: 20px !important;
+    height: 2px !important;
+    flex: 0 0 auto !important;
+  }
+
+  /* Login/Register pills should fit without becoming stretched */
+  .login-btn,
+  .register-btn,
+  .nav-login,
+  .nav-register,
+  .btn-login,
+  .btn-register {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    flex: 0 1 auto !important;
+    white-space: nowrap !important;
+    border-radius: 10px !important;
+  }
+
+  /* Prevent generic buttons from becoming giant mobile pills */
+  button,
+  .btn,
+  .nav-link {
+    max-width: 100% !important;
+  }
+}
+
+</style>
+
+{% endblock %}
